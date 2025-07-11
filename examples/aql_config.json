@@ -1,0 +1,225 @@
+{
+  "// AQL双重执行架构配置文件": "支持解释执行和编译执行",
+  
+  "execution": {
+    "// 执行模式配置": "控制代码执行方式",
+    "default_mode": "auto",
+    "auto_switch": true,
+    "hotspot_threshold": 100,
+    "compile_delay": "100ms",
+    "max_concurrent_compiles": 4,
+    "enable_profiling": true,
+    
+    "// 模式特定配置": "针对不同执行模式的配置",
+    "interpret": {
+      "enable_debugging": true,
+      "step_mode": false,
+      "trace_execution": false,
+      "memory_limit": "512MB"
+    },
+    
+    "compile": {
+      "optimization_level": "O2",
+      "enable_inlining": true,
+      "enable_dead_code_elimination": true,
+      "enable_constant_folding": true,
+      "cache_compiled_code": true,
+      "cache_directory": "./compiled_cache"
+    },
+    
+    "jit": {
+      "enable_jit": true,
+      "compile_threshold": 10,
+      "optimization_level": "O1",
+      "compilation_delay": "50ms",
+      "max_compilation_time": "5s",
+      "enable_speculative_optimization": true,
+      "enable_profile_guided_optimization": true
+    }
+  },
+  
+  "debugging": {
+    "// 调试配置": "开发阶段的调试支持",
+    "enabled": false,
+    "breakpoints": [],
+    "watch_variables": [],
+    "step_mode": false,
+    "trace_execution": false,
+    "memory_debugging": false,
+    "performance_profiling": false
+  },
+  
+  "ai_services": {
+    "// AI服务配置": "AI服务调用的配置",
+    "default_timeout": "30s",
+    "max_retries": 3,
+    "retry_delay": "1s",
+    "circuit_breaker": {
+      "failure_threshold": 5,
+      "recovery_timeout": "60s",
+      "half_open_max_calls": 3
+    },
+    "connection_pool": {
+      "max_connections": 100,
+      "idle_timeout": "5m",
+      "max_lifetime": "1h"
+    },
+    "load_balancer": {
+      "strategy": "round_robin",
+      "health_check_interval": "30s"
+    }
+  },
+  
+  "performance": {
+    "// 性能配置": "性能相关设置",
+    "gc": {
+      "enabled": true,
+      "mode": "hybrid",
+      "young_gen_size": "64MB",
+      "old_gen_size": "256MB",
+      "max_pause_time": "1ms",
+      "gc_threads": 2
+    },
+    "memory": {
+      "heap_size": "512MB",
+      "stack_size": "8MB",
+      "enable_memory_profiling": false
+    },
+    "concurrency": {
+      "max_coroutines": 10000,
+      "coroutine_stack_size": "2MB",
+      "event_loop_threads": 4
+    }
+  },
+  
+  "logging": {
+    "// 日志配置": "日志记录设置",
+    "level": "info",
+    "output": "stdout",
+    "format": "json",
+    "include_timestamps": true,
+    "include_caller_info": false,
+    "execution_tracing": false,
+    "performance_logging": false
+  },
+  
+  "development": {
+    "// 开发配置": "开发阶段的设置",
+    "auto_reload": true,
+    "watch_files": true,
+    "hot_reload": false,
+    "enable_repl": true,
+    "syntax_checking": true,
+    "type_checking": true
+  },
+  
+  "production": {
+    "// 生产配置": "生产环境的设置",
+    "enable_optimizations": true,
+    "disable_debugging": true,
+    "enable_monitoring": true,
+    "enable_metrics": true,
+    "security_hardening": true,
+    "resource_limits": {
+      "max_memory": "1GB",
+      "max_cpu_time": "30s",
+      "max_file_handles": 1000
+    }
+  },
+  
+  "profiles": {
+    "// 预设配置": "常用配置组合",
+    "development": {
+      "execution": {
+        "default_mode": "interpret",
+        "auto_switch": false,
+        "enable_profiling": false
+      },
+      "debugging": {
+        "enabled": true,
+        "trace_execution": true
+      },
+      "ai_services": {
+        "default_timeout": "60s",
+        "max_retries": 1
+      }
+    },
+    
+    "testing": {
+      "execution": {
+        "default_mode": "auto",
+        "auto_switch": true,
+        "enable_profiling": true
+      },
+      "debugging": {
+        "enabled": false
+      },
+      "ai_services": {
+        "default_timeout": "10s",
+        "max_retries": 2
+      }
+    },
+    
+    "production": {
+      "execution": {
+        "default_mode": "compile",
+        "auto_switch": true,
+        "enable_profiling": true
+      },
+      "debugging": {
+        "enabled": false
+      },
+      "ai_services": {
+        "default_timeout": "30s",
+        "max_retries": 3
+      },
+      "performance": {
+        "gc": {
+          "mode": "production",
+          "max_pause_time": "0.5ms"
+        }
+      }
+    },
+    
+    "high_performance": {
+      "execution": {
+        "default_mode": "compile",
+        "auto_switch": false,
+        "hotspot_threshold": 5,
+        "compile_delay": "10ms"
+      },
+      "performance": {
+        "gc": {
+          "mode": "low_latency",
+          "max_pause_time": "0.1ms"
+        },
+        "memory": {
+          "heap_size": "2GB"
+        }
+      }
+    },
+    
+    "debug_friendly": {
+      "execution": {
+        "default_mode": "interpret",
+        "auto_switch": false,
+        "enable_profiling": false
+      },
+      "debugging": {
+        "enabled": true,
+        "step_mode": true,
+        "trace_execution": true,
+        "memory_debugging": true
+      }
+    }
+  },
+  
+  "experimental": {
+    "// 实验性功能": "尚在开发中的功能",
+    "enable_experimental_features": false,
+    "advanced_jit": false,
+    "gpu_acceleration": false,
+    "quantum_computing": false,
+    "neural_compilation": false
+  }
+} 

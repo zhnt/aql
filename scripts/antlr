@@ -1,0 +1,12 @@
+#!/bin/bash
+# ANTLR工具包装脚本
+
+ANTLR_JAR="$(dirname "$0")/../tools/antlr-4.13.1-complete.jar"
+
+if [ ! -f "$ANTLR_JAR" ]; then
+    echo "Error: ANTLR JAR file not found at $ANTLR_JAR"
+    exit 1
+fi
+
+# 运行ANTLR工具
+java -cp "$ANTLR_JAR" org.antlr.v4.Tool "$@" 
