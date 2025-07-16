@@ -1,0 +1,13 @@
+// 测试变量持久化
+let total = 0;
+
+function addToTotal(x) {
+    total = total + x;
+    return total;
+}
+
+// 第一次调用
+addToTotal(10);
+
+// 第二次调用，应该累积
+addToTotal(20); 

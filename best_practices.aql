@@ -1,0 +1,44 @@
+// 游戏脚本最佳实践：创建大量对象的正确方式
+
+// ❌ 错误：每个对象都用独立变量（会超过寄存器限制）
+// let player1 = "Player_1";
+// let player2 = "Player_2";
+// let player3 = "Player_3";
+// ... 1000个变量 -> 超过寄存器限制
+
+// ✅ 正确：使用数组和循环，重用变量
+let players = [];                    // 寄存器1：玩家数组
+let enemies = [];                    // 寄存器2：敌人数组
+let items = [];                      // 寄存器3：道具数组
+
+// 创建对象的通用函数（重用临时变量）
+let temp = "";                       // 寄存器4：临时变量
+let index = 0;                       // 寄存器5：索引变量
+
+// 创建100个玩家（只用5个寄存器）
+index = 0;
+while (index < 100) {
+    temp = "Player_" + index;
+    players[index] = temp;
+    index = index + 1;
+}
+
+// 创建200个敌人（重用相同寄存器）
+index = 0;
+while (index < 200) {
+    temp = "Enemy_" + index;
+    enemies[index] = temp;
+    index = index + 1;
+}
+
+// 创建500个道具（重用相同寄存器）
+index = 0;
+while (index < 500) {
+    temp = "Item_" + index;
+    items[index] = temp;
+    index = index + 1;
+}
+
+// 总计：800个对象，但只用了5个寄存器
+let totalObjects = 800;
+return totalObjects; 

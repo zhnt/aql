@@ -1,0 +1,26 @@
+// 高级闭包测试：多种场景
+function createModule() {
+    let privateVar = 100;
+    let counter = 0;
+    
+    function publicMethod1() {
+        return privateVar;
+    }
+    
+    function publicMethod2() {
+        counter = counter + 1;
+        return counter;
+    }
+    
+    function factory(x) {
+        function multiply() {
+            return x * privateVar;
+        }
+        return multiply;
+    }
+    
+    return publicMethod1;  // 简化：只返回一个方法
+}
+
+let module = createModule();
+module();  // 应该返回100 

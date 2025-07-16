@@ -1,0 +1,7 @@
+// 简单的函数调用测试
+function add(a, b) {
+    return a + b;
+}
+
+// 直接调用并显示结果
+add(3, 5); 

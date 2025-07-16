@@ -1,0 +1,11 @@
+// 简单的数组访问测试
+let simpleArray = [1, 2, 3];
+
+// 测试基本访问
+let first = simpleArray[0];  // 应该是1
+let second = simpleArray[1]; // 应该是2
+let third = simpleArray[2];  // 应该是3
+
+// 测试结果
+let result = first + second + third; // 1 + 2 + 3 = 6
+result; 

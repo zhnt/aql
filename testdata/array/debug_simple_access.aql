@@ -1,0 +1,16 @@
+// 简单的数组访问测试
+
+// 创建一个简单的三维数组
+let cube = [
+    [
+        [1, 2],
+        [3, 4]
+    ]
+];
+
+// 逐步访问
+let layer = cube[0];        // 应该是二维数组
+let row = layer[0];         // 应该是一维数组  
+let element = row[0];       // 应该是数字 1
+
+return element; 

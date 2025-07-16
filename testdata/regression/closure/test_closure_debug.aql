@@ -1,0 +1,37 @@
+// 调试闭包捕获问题
+
+// 1. 简单数组捕获
+function testArrayCapture() {
+    let data = [1, 2, 3];
+    let multiplier = 2;
+    
+    function process() {
+        let result = data[0] * multiplier;
+        return result;
+    }
+    
+    return process;
+}
+
+// 2. 简单字符串捕获
+function testStringCapture() {
+    let prefix = "Hello";
+    let suffix = "World";
+    
+    function combine() {
+        return prefix + " " + suffix;
+    }
+    
+    return combine;
+}
+
+// 执行测试
+let arrayTest = testArrayCapture();
+let result1 = arrayTest();  // 应该是 1 * 2 = 2
+
+let stringTest = testStringCapture();
+let result2 = stringTest();  // 应该是 "Hello World"
+
+// 输出结果
+result1;  // 2
+result2;  // "Hello World" 

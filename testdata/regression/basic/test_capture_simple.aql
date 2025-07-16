@@ -1,0 +1,13 @@
+// 简单变量捕获测试
+function outer() {
+    let x = 42;
+    
+    function inner() {
+        return x;  // 捕获外部变量x
+    }
+    
+    return inner;
+}
+
+let closure = outer();
+closure();  // 应该返回42 

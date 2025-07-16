@@ -1,0 +1,14 @@
+// 嵌套闭包：函数返回函数
+function outer() {
+    function middle() {
+        function inner() {
+            return 42;
+        }
+        return inner;
+    }
+    return middle;
+}
+
+let func = outer();
+let innerFunc = func();
+innerFunc();  // 应该返回42 

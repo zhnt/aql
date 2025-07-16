@@ -1,0 +1,1 @@
+let sprites = Array(1000); sprites[0] = "Sprite_0"; sprites[100] = "Sprite_100"; return sprites;

@@ -1,0 +1,11 @@
+// 更详细的调试测试
+
+// 创建一个明确的二维数组
+let matrix = [[100, 200], [300, 400]];
+
+// 分步访问，清楚地看到每一步的结果
+let firstRow = matrix[0];   // 应该是 [100, 200]
+let firstElement = firstRow[0];  // 应该是 100
+
+// 直接返回 firstElement，避免ToString问题
+return firstElement; 

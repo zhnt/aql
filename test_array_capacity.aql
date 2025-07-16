@@ -1,0 +1,1 @@
+let buffer = Array(10); buffer[0] = "test"; return buffer;

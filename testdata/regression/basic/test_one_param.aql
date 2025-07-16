@@ -1,0 +1,14 @@
+// 对比测试：单参数 vs 双参数
+function identity(x) {
+    return x;
+}
+
+function add(a, b) {
+    return a + b;
+}
+
+// 测试双参数（已知工作）
+add(3, 5);
+
+// 测试单参数
+identity(42); 

@@ -1,0 +1,81 @@
+// AQL三维数组测试
+
+// 1. 三维数组创建（2x2x2立方体）
+let cube = [
+    [
+        [1, 2],
+        [3, 4]
+    ],
+    [
+        [5, 6],
+        [7, 8]
+    ]
+];
+
+// 2. 三维数组访问
+let element000 = cube[0][0][0];  // 1
+let element111 = cube[1][1][1];  // 8
+let element101 = cube[1][0][1];  // 6
+
+// 3. 三维数组修改
+cube[0][1][1] = 40;  // 修改第一层第二行第二列
+cube[1][0][0] = 50;  // 修改第二层第一行第一列
+
+// 4. 字符串三维数组
+let stringCube = [
+    [
+        ["a", "b"],
+        ["c", "d"]
+    ],
+    [
+        ["e", "f"],
+        ["g", "h"]
+    ]
+];
+
+let str1 = stringCube[0][0][0];  // "a"
+let str2 = stringCube[1][1][0];  // "g"
+
+// 5. 更大的三维数组（3x2x2）
+let bigCube = [
+    [
+        [10, 20],
+        [30, 40]
+    ],
+    [
+        [50, 60],
+        [70, 80]
+    ],
+    [
+        [90, 100],
+        [110, 120]
+    ]
+];
+
+let big1 = bigCube[0][0][0];   // 10
+let big2 = bigCube[1][1][1];   // 80
+let big3 = bigCube[2][1][0];   // 110
+
+// 6. 混合类型三维数组
+let mixedCube = [
+    [
+        [1, "a"],
+        [2, "b"]
+    ],
+    [
+        ["c", 3],
+        ["d", 4]
+    ]
+];
+
+let mixed1 = mixedCube[0][0][0];  // 1
+let mixed2 = mixedCube[1][0][0];  // "c"
+let mixed3 = mixedCube[1][1][1];  // 4
+
+// 7. 计算验证
+let sum1 = element000 + element111 + element101;  // 1 + 8 + 6 = 15
+let sum2 = cube[0][1][1] + cube[1][0][0];         // 40 + 50 = 90
+let sum3 = big1 + big2 + big3;                    // 10 + 80 + 110 = 200
+
+// 返回验证结果
+sum1 + sum2 + sum3;  // 15 + 90 + 200 = 305 

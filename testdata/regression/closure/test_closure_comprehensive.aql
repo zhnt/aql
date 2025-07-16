@@ -1,0 +1,56 @@
+// AQL极简闭包系统 - 综合功能演示
+
+// 1. 基础闭包：函数返回函数
+function createGreeter() {
+    function greet() {
+        return 100;  // 问候值
+    }
+    return greet;
+}
+
+// 2. 计算闭包：数学运算
+function createCalculator() {
+    function calculate() {
+        let a = 10;
+        let b = 20;
+        return a + b;
+    }
+    return calculate;
+}
+
+// 3. 数组闭包：数据处理
+function createDataProcessor() {
+    function processData() {
+        let data = [1, 2, 3, 4, 5];
+        return data[0] + data[4];  // 第一个加最后一个
+    }
+    return processData;
+}
+
+// 4. 嵌套闭包：多层函数
+function createNested() {
+    function level1() {
+        function level2() {
+            return 42;
+        }
+        return level2;
+    }
+    return level1;
+}
+
+// 执行所有演示
+let greeter = createGreeter();
+let result1 = greeter();  // 100
+
+let calc = createCalculator();  
+let result2 = calc();  // 30
+
+let processor = createDataProcessor();
+let result3 = processor();  // 6 (1+5)
+
+let nested = createNested();
+let level2Func = nested();
+let result4 = level2Func();  // 42
+
+// 返回所有结果的总和
+result1 + result2 + result3 + result4;  // 100+30+6+42 = 178 

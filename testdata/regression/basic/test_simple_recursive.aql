@@ -1,0 +1,10 @@
+// 简单的递归测试
+function countdown(n) {
+    if (n <= 0) {
+        return 0;
+    } else {
+        return countdown(n - 1);
+    }
+}
+
+countdown(2); 

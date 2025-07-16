@@ -1,0 +1,12 @@
+// AQL算术运算示例
+
+let a = 10;
+let b = 3;
+
+let sum = a + b;
+let diff = a - b; 
+let product = a * b;
+let quotient = a / b;
+
+// 返回计算结果
+return sum; 

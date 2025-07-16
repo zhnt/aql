@@ -1,0 +1,6 @@
+// 分析寄存器消耗 - 简单版本
+
+// 这个版本只消耗很少寄存器
+let arr = ["a", "b", "c"];
+let result = arr[0];
+return result; 

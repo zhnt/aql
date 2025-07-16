@@ -1,0 +1,113 @@
+// AQL复杂闭包捕获测试 - 验证带自由变量的嵌套闭包
+
+// 1. 闭包捕获数组变量
+function createArrayClosure() {
+    let data = [10, 20, 30];
+    let multiplier = 2;
+    
+    function processArray() {
+        let result = data[0] * multiplier;
+        return result;
+    }
+    
+    return processArray;
+}
+
+// 2. 闭包捕获字符串变量
+function createStringClosure() {
+    let prefix = "Hello";
+    let suffix = "World";
+    
+    function combineStrings() {
+        return prefix + " " + suffix;
+    }
+    
+    return combineStrings;
+}
+
+// 3. 嵌套闭包捕获复杂对象
+function createNestedComplexClosure() {
+    let outerData = ["outer", [1, 2, 3]];
+    let outerMultiplier = 5;
+    
+    function outerFunction() {
+        let innerData = outerData[1];  // 捕获数组
+        let innerString = outerData[0]; // 捕获字符串
+        
+        function innerFunction() {
+            let sum = innerData[0] + innerData[1] + innerData[2];
+            return sum * outerMultiplier;  // 使用外层变量
+        }
+        
+        return innerFunction;
+    }
+    
+    return outerFunction;
+}
+
+// 4. 多层嵌套与变量修改（简化版）
+function createMutatingClosure() {
+    let counter = 0;  // 简化为普通变量
+    let step = 3;
+    
+    function incrementor() {
+        function actualIncrement() {
+            let newValue = counter + step;
+            return newValue;
+        }
+        return actualIncrement;
+    }
+    
+    return incrementor;
+}
+
+// 5. 复杂对象组合捕获
+function createCombinedClosure() {
+    let names = ["Alice", "Bob"];
+    let scores = [85, 92];
+    let grade = "A";
+    
+    function createReport() {
+        let data = [names, scores, grade];
+        
+        function generateReport() {
+            let name1 = data[0][0];
+            let score1 = data[1][0];
+            let finalGrade = data[2];
+            
+            return name1 + ":" + score1 + "(" + finalGrade + ")";
+        }
+        
+        return generateReport;
+    }
+    
+    return createReport;
+}
+
+// 执行所有测试
+let arrayClosure = createArrayClosure();
+let result1 = arrayClosure();  // 应该是 10 * 2 = 20
+
+let stringClosure = createStringClosure();
+let result2 = stringClosure();  // 应该是 "Hello World"
+
+let nestedClosure = createNestedComplexClosure();
+let innerClosure = nestedClosure();
+let result3 = innerClosure();  // 应该是 (1+2+3) * 5 = 30
+
+let mutatingClosure = createMutatingClosure();
+let incrementor = mutatingClosure();
+let result4 = incrementor();  // 应该是 0 + 3 = 3
+let result5 = incrementor();  // 应该仍是 0 + 3 = 3（因为没有真正修改counter）
+
+let combinedClosure = createCombinedClosure();
+let reportGenerator = combinedClosure();
+let result6 = reportGenerator();  // 应该是 "Alice:85(A)"
+
+// 验证所有结果
+result1;  // 20
+result2;  // "Hello World"
+result3;  // 30
+result4;  // 3
+result5;  // 3
+result6;  // "Alice:85(A)" 

@@ -1,0 +1,36 @@
+// 综合测试：函数定义、调用、递归、嵌套
+let counter = 0;
+
+function increment() {
+    counter = counter + 1;
+    return counter;
+}
+
+function fibonacci(n) {
+    if (n <= 1) {
+        return n;
+    } else {
+        return fibonacci(n - 1) + fibonacci(n - 2);
+    }
+}
+
+function createMultiplier() {
+    function multiply(a, b) {
+        return a * b;
+    }
+    return multiply;
+}
+
+// 测试1：变量修改
+increment();  // counter = 1
+increment();  // counter = 2
+
+// 测试2：递归计算 fibonacci(6) = 8
+fibonacci(6);
+
+// 测试3：函数返回和调用
+let mult = createMultiplier();
+mult(3, 4);  // 12
+
+// 最终测试：组合调用
+mult(fibonacci(4), increment());  // mult(3, 3) = 9 

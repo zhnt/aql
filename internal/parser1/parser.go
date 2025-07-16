@@ -89,6 +89,7 @@ func New(l *lexer1.Lexer) *Parser {
 	p.registerPrefix(lexer1.FUNCTION, p.parseFunctionLiteral)
 	p.registerPrefix(lexer1.ASYNC, p.parseAsyncFunctionLiteral)
 	p.registerPrefix(lexer1.LBRACKET, p.parseArrayLiteral)
+	p.registerPrefix(lexer1.ARRAY, p.parseArrayConstructor)
 	p.registerPrefix(lexer1.LBRACE, p.parseObjectLiteral)
 	p.registerPrefix(lexer1.AWAIT, p.parseAwaitExpression)
 	p.registerPrefix(lexer1.YIELD, p.parseYieldExpression)
@@ -120,6 +121,11 @@ func New(l *lexer1.Lexer) *Parser {
 	p.nextToken()
 	p.nextToken()
 
+	// 跳过开头的注释
+	for p.curToken.Type == lexer1.COMMENT {
+		p.nextToken()
+	}
+
 	return p
 }
 
@@ -137,6 +143,11 @@ func (p *Parser) registerInfix(tokenType lexer1.TokenType, fn infixParseFn) {
 func (p *Parser) nextToken() {
 	p.curToken = p.peekToken
 	p.peekToken = p.l.NextToken()
+
+	// 跳过注释token
+	for p.peekToken.Type == lexer1.COMMENT {
+		p.peekToken = p.l.NextToken()
+	}
 }
 
 // ParseProgram 解析程序

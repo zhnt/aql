@@ -1,0 +1,116 @@
+// AQL 复杂对象GC和闭包捕获 - 最终验证报告
+
+// === 1. 混合对象GC验证 ===
+function testMixedGC() {
+    // 字符串GC
+    let str1 = "Hello";
+    let str2 = "World";
+    let combined = str1 + " " + str2;
+    
+    // 数组GC
+    let nums = [1, 2, 3];
+    let strings = ["a", "b", "c"];
+    
+    // 混合数组GC
+    let mixed = [42, "test", nums];
+    
+    // 嵌套数组GC
+    let nested = [strings, mixed];
+    
+    // 复杂访问
+    let result = nested[0][1] + mixed[1];  // "b" + "test" = "btest"
+    
+    return result;
+}
+
+// === 2. 带自由变量的嵌套闭包验证 ===
+function testComplexClosureCapture() {
+    // 捕获数组变量
+    let numbers = [10, 20, 30];
+    let factor = 2;
+    
+    function createProcessor() {
+        let localArray = numbers;  // 捕获数组
+        let localFactor = factor;  // 捕获数值
+        
+        function processNumbers() {
+            let sum = localArray[0] + localArray[1] + localArray[2];
+            return sum * localFactor;
+        }
+        
+        return processNumbers;
+    }
+    
+    return createProcessor;
+}
+
+// === 3. 多层嵌套闭包与复杂对象捕获 ===
+function testDeepNestedCapture() {
+    let config = ["prefix", [1, 2], "suffix"];
+    
+    function level1() {
+        let data = config[1];      // 捕获数组
+        let prefix = config[0];    // 捕获字符串
+        
+        function level2() {
+            let sum = data[0] + data[1];
+            
+            function level3() {
+                return prefix + sum + "";  // 确保返回字符串
+            }
+            
+            return level3;
+        }
+        
+        return level2;
+    }
+    
+    return level1;
+}
+
+// === 4. 字符串和数组组合捕获 ===
+function testStringArrayCapture() {
+    let names = ["Alice", "Bob", "Charlie"];
+    let greeting = "Hello";
+    
+    function createGreeter() {
+        let capturedNames = names;
+        let capturedGreeting = greeting;
+        
+        function greet() {
+            return capturedGreeting + " " + capturedNames[0];
+        }
+        
+        return greet;
+    }
+    
+    return createGreeter;
+}
+
+// === 执行所有验证测试 ===
+
+// 测试1：混合对象GC
+let gcResult = testMixedGC();
+
+// 测试2：复杂闭包捕获
+let closureFactory = testComplexClosureCapture();
+let processor = closureFactory();
+let captureResult = processor();
+
+// 测试3：深度嵌套捕获
+let deepFactory = testDeepNestedCapture();
+let level1Func = deepFactory();
+let level2Func = level1Func();
+let level3Func = level2Func();
+let deepResult = level3Func();
+
+// 测试4：字符串数组捕获
+let greeterFactory = testStringArrayCapture();
+let greeter = greeterFactory();
+let greetResult = greeter();
+
+// === 验证结果 ===
+gcResult;      // "btest" - 混合对象GC正常
+captureResult; // 120 - (10+20+30)*2 = 复杂闭包捕获正常
+deepResult;    // "prefix3" - 深度嵌套捕获正常
+greetResult;   // "Hello Alice" - 字符串数组捕获正常 

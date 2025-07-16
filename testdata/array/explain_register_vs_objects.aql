@@ -1,0 +1,46 @@
+// 演示：寄存器 vs 对象数量的区别
+
+// 这个函数只用了很少的寄存器，但可以创建很多对象
+function createManyObjects() {
+    let objects = [];  // 寄存器1：数组对象
+    let i = 0;        // 寄存器2：循环计数器
+    
+    // 虽然只用了2个寄存器，但可以创建1000个对象
+    while (i < 1000) {
+        objects[i] = "Object_" + i;  // 临时寄存器3：字符串连接结果
+        i = i + 1;
+    }
+    
+    return objects;    // 返回1000个对象，但只用了3个寄存器
+}
+
+// 这个函数创建很少对象，但消耗大量寄存器
+function consumeManyRegisters() {
+    // 每个let声明都需要一个寄存器
+    let var1 = "string1";    // 寄存器1
+    let var2 = "string2";    // 寄存器2
+    let var3 = "string3";    // 寄存器3
+    // ... 如果有256个let声明，就需要256个寄存器
+    
+    // 复杂表达式也消耗临时寄存器
+    let result = var1 + var2 + var3;  // 需要多个临时寄存器
+    
+    return result;  // 只创建了4个对象，但消耗了很多寄存器
+}
+
+// 游戏脚本的正确写法：重用变量，减少寄存器消耗
+function createManySprites() {
+    let sprites = [];
+    let sprite;        // 重用同一个变量
+    let i = 0;
+    
+    while (i < 10000) {
+        sprite = createSprite("sprite_" + i);  // 重用sprite变量
+        sprites[i] = sprite;
+        i = i + 1;
+    }
+    
+    return sprites;  // 创建10000个精灵对象，但只用了4个寄存器
+}
+
+return createManySprites(); 

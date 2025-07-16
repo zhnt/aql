@@ -1,0 +1,15 @@
+// 简化的二维数组测试
+function createMatrix(rows, cols, defaultValue) {
+    let matrix = Array(rows);
+    let i = 0;
+    
+    while (i < rows) {
+        matrix[i] = Array(cols, defaultValue);
+        i = i + 1;
+    }
+    
+    return matrix;
+}
+
+let gameBoard = createMatrix(2, 3, 5);     // 2x3矩阵，初始为5
+return gameBoard; 

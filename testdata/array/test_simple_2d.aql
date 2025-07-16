@@ -1,0 +1,9 @@
+// 简单的2D数组测试
+let matrix = [
+    [1, 2],
+    [3, 4]
+];
+
+// 测试基本访问
+let element = matrix[0][0];
+element; 

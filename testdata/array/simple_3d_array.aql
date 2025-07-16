@@ -1,0 +1,52 @@
+// 简化的三维数组测试
+
+// 创建一个简单的2x2x2立方体
+let cube = [
+    [
+        [1, 2],
+        [3, 4]
+    ],
+    [
+        [5, 6],
+        [7, 8]
+    ]
+];
+
+// 访问三维数组元素
+let element000 = cube[0][0][0];     // 1
+let element111 = cube[1][1][1];     // 8
+let element010 = cube[0][1][0];     // 3
+let element101 = cube[1][0][1];     // 6
+
+// 修改三维数组元素
+cube[0][0][0] = 10;
+cube[1][1][1] = 80;
+cube[0][1][0] = 30;
+
+// 获取修改后的元素
+let modified000 = cube[0][0][0];    // 10
+let modified111 = cube[1][1][1];    // 80
+let modified010 = cube[0][1][0];    // 30
+
+// 创建字符串立方体
+let stringCube = [
+    [
+        ["A", "B"],
+        ["C", "D"]
+    ],
+    [
+        ["E", "F"],
+        ["G", "H"]
+    ]
+];
+
+// 访问字符串立方体
+let strA = stringCube[0][0][0];     // "A"
+let strH = stringCube[1][1][1];     // "H"
+let strC = stringCube[0][1][0];     // "C"
+
+// 计算结果
+let sum = element000 + element111 + element010 + element101;
+let result = sum + 200;
+
+return result; 

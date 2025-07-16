@@ -66,6 +66,7 @@ const (
 	WHILE    // while
 	BREAK    // break
 	CONTINUE // continue
+	ARRAY    // Array (预分配容量数组构造器)
 
 	// 异步相关关键字
 	ASYNC // async
@@ -199,6 +200,8 @@ func (t TokenType) String() string {
 		return "BREAK"
 	case CONTINUE:
 		return "CONTINUE"
+	case ARRAY:
+		return "ARRAY"
 	case ASYNC:
 		return "ASYNC"
 	case AWAIT:
@@ -260,6 +263,7 @@ func IsKeyword(ident string) (TokenType, bool) {
 		"while":     WHILE,
 		"break":     BREAK,
 		"continue":  CONTINUE,
+		"Array":     ARRAY,
 		"async":     ASYNC,
 		"await":     AWAIT,
 		"yield":     YIELD,

@@ -1,0 +1,48 @@
+// 简化最终验证测试
+
+// 1. 混合对象GC测试
+let str1 = "Hello";
+let str2 = "World";
+let result1 = str1 + " " + str2;
+
+// 2. 数组GC测试
+let arr1 = [1, 2, 3];
+let arr2 = ["a", "b", "c"];
+let result2 = arr1[0] + arr2[0];  // 不能直接添加数字和字符串
+
+// 3. 简单闭包捕获测试
+function testSimpleCapture() {
+    let data = [10, 20, 30];
+    let multiplier = 2;
+    
+    function process() {
+        let sum = data[0] + data[1] + data[2];
+        return sum * multiplier;
+    }
+    
+    return process;
+}
+
+let captureTest = testSimpleCapture();
+let result3 = captureTest();
+
+// 4. 字符串数组捕获测试
+function testStringCapture() {
+    let names = ["Alice", "Bob"];
+    let greeting = "Hello";
+    
+    function greet() {
+        return greeting + " " + names[0];
+    }
+    
+    return greet;
+}
+
+let stringTest = testStringCapture();
+let result4 = stringTest();
+
+// 验证结果
+result1;  // "Hello World"
+result2;  // "1a" (字符串连接)
+result3;  // 120 (60 * 2)
+result4;  // "Hello Alice" 

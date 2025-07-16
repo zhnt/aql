@@ -1,0 +1,13 @@
+// 简单的闭包测试 - 调试版本
+function createSimple() {
+    let x = 42;
+    
+    function inner() {
+        return x;
+    }
+    
+    return inner;
+}
+
+let closure = createSimple();
+closure(); 

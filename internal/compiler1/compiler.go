@@ -9,13 +9,17 @@ import (
 
 // Compiler AQL编译器，将AST编译为VM字节码
 type Compiler struct {
-	constants    []vm.Value      // 常量池
+	constants    []vm.ValueGC    // 常量池
 	symbolTable  *SymbolTable    // 符号表
 	scopes       []*CompileScope // 作用域栈
 	scopeIndex   int             // 当前作用域索引
 	nextRegister int             // 下一个可用寄存器
 	maxRegisters int             // 最大寄存器使用数
 	loopStack    []*LoopContext  // 循环栈，用于break/continue
+
+	// 寄存器管理优化
+	freeRegisters []int // 空闲寄存器池
+	registerStack []int // 寄存器栈，用于嵌套表达式
 }
 
 // LoopContext 循环上下文，用于处理break/continue
@@ -30,6 +34,9 @@ type CompileScope struct {
 	instructions        []vm.Instruction // 当前作用域的指令
 	lastInstruction     EmittedInstruction
 	previousInstruction EmittedInstruction
+	// 寄存器状态保存
+	savedNextRegister int
+	savedMaxRegisters int
 }
 
 // EmittedInstruction 已发射的指令信息
@@ -57,13 +64,15 @@ func New() *Compiler {
 	}
 
 	return &Compiler{
-		constants:    make([]vm.Value, 0),
-		symbolTable:  NewSymbolTable(),
-		scopes:       []*CompileScope{mainScope},
-		scopeIndex:   0,
-		nextRegister: 0,
-		maxRegisters: 0,
-		loopStack:    make([]*LoopContext, 0),
+		constants:     make([]vm.ValueGC, 0),
+		symbolTable:   NewSymbolTable(),
+		scopes:        []*CompileScope{mainScope},
+		scopeIndex:    0,
+		nextRegister:  0,
+		maxRegisters:  0,
+		loopStack:     make([]*LoopContext, 0),
+		freeRegisters: make([]int, 0),
+		registerStack: make([]int, 0),
 	}
 }
 
@@ -93,7 +102,10 @@ func (c *Compiler) compileProgram(program *parser1.Program) (*vm.Function, error
 	function := vm.NewFunction("main")
 	function.Instructions = c.currentInstructions()
 	function.Constants = c.constants
-	function.MaxStackSize = 256 // 临时设置，后续可优化
+
+	// 动态计算MaxStackSize，确保足够的寄存器空间
+	calculatedSize := c.calculateOptimalStackSize()
+	function.MaxStackSize = calculatedSize
 
 	return function, nil
 }
@@ -136,11 +148,27 @@ func (c *Compiler) compileLetStatement(stmt *parser1.LetStatement) error {
 	// 定义符号
 	symbol := c.symbolTable.Define(stmt.Name.Value)
 
+	// 为局部变量分配固定的寄存器
+	var targetReg int
+	if symbol.Scope == LOCAL_SCOPE {
+		// 局部变量使用固定的寄存器位置，确保不会被临时计算重用
+		targetReg = symbol.Index
+		if reg != targetReg {
+			c.emit(vm.OP_MOVE, targetReg, reg, 0) // 移动到固定位置
+		}
+		// 确保寄存器分配器不会重用局部变量寄存器
+		if c.nextRegister <= targetReg {
+			c.nextRegister = targetReg + 1
+		}
+	} else {
+		targetReg = reg
+	}
+
 	// 发射存储指令
 	if symbol.Scope == GLOBAL_SCOPE {
-		c.emit(vm.OP_SET_GLOBAL, reg, symbol.Index) // G(symbol.Index) := R[reg]
+		c.emit(vm.OP_SET_GLOBAL, targetReg, symbol.Index) // G(symbol.Index) := R[targetReg]
 	} else {
-		c.emit(vm.OP_SET_LOCAL, reg, symbol.Index) // L(symbol.Index) := R[reg]
+		c.emit(vm.OP_SET_LOCAL, targetReg, symbol.Index) // L(symbol.Index) := R[targetReg]
 	}
 
 	return nil
@@ -157,10 +185,26 @@ func (c *Compiler) compileConstStatement(stmt *parser1.ConstStatement) error {
 	symbol := c.symbolTable.Define(stmt.Name.Value)
 	symbol.IsConstant = true
 
-	if symbol.Scope == GLOBAL_SCOPE {
-		c.emit(vm.OP_SET_GLOBAL, reg, symbol.Index) // G(symbol.Index) := R[reg]
+	// 为局部变量分配固定的寄存器
+	var targetReg int
+	if symbol.Scope == LOCAL_SCOPE {
+		// 局部变量使用固定的寄存器位置，确保不会被临时计算重用
+		targetReg = symbol.Index
+		if reg != targetReg {
+			c.emit(vm.OP_MOVE, targetReg, reg, 0) // 移动到固定位置
+		}
+		// 确保寄存器分配器不会重用局部变量寄存器
+		if c.nextRegister <= targetReg {
+			c.nextRegister = targetReg + 1
+		}
 	} else {
-		c.emit(vm.OP_SET_LOCAL, reg, symbol.Index) // L(symbol.Index) := R[reg]
+		targetReg = reg
+	}
+
+	if symbol.Scope == GLOBAL_SCOPE {
+		c.emit(vm.OP_SET_GLOBAL, targetReg, symbol.Index) // G(symbol.Index) := R[targetReg]
+	} else {
+		c.emit(vm.OP_SET_LOCAL, targetReg, symbol.Index) // L(symbol.Index) := R[targetReg]
 	}
 
 	return nil
@@ -185,6 +229,11 @@ func (c *Compiler) compileReturnStatement(stmt *parser1.ReturnStatement) error {
 
 // compileExpressionStatement 编译表达式语句
 func (c *Compiler) compileExpressionStatement(stmt *parser1.ExpressionStatement) error {
+	// 特殊处理具名函数定义
+	if funcLit, ok := stmt.Expression.(*parser1.FunctionLiteral); ok && funcLit.Name != nil {
+		return c.compileNamedFunctionDefinition(funcLit)
+	}
+
 	reg, err := c.compileExpression(stmt.Expression)
 	if err != nil {
 		return err
@@ -219,6 +268,8 @@ func (c *Compiler) compileExpression(expr parser1.Expression) (int, error) {
 		return c.compileIdentifier(expr)
 	case *parser1.AssignmentStatement:
 		return c.compileAssignmentExpression(expr)
+	case *parser1.IndexAssignmentStatement:
+		return c.compileIndexAssignmentExpression(expr)
 	case *parser1.InfixExpression:
 		return c.compileInfixExpression(expr)
 	case *parser1.PrefixExpression:
@@ -231,6 +282,8 @@ func (c *Compiler) compileExpression(expr parser1.Expression) (int, error) {
 		return c.compileCallExpression(expr)
 	case *parser1.ArrayLiteral:
 		return c.compileArrayLiteral(expr)
+	case *parser1.ArrayConstructor:
+		return c.compileArrayConstructor(expr)
 	case *parser1.IndexExpression:
 		return c.compileIndexExpression(expr)
 	default:
@@ -293,9 +346,12 @@ func (c *Compiler) compileIdentifier(expr *parser1.Identifier) (int, error) {
 	}
 
 	reg := c.allocateRegister()
-	if symbol.Scope == GLOBAL_SCOPE {
+	switch symbol.Scope {
+	case GLOBAL_SCOPE:
 		c.emit(vm.OP_GET_GLOBAL, reg, symbol.Index) // R[reg] := G(symbol.Index)
-	} else {
+	case FREE_SCOPE:
+		c.emit(vm.OP_GET_UPVALUE, reg, symbol.Index) // R[reg] := Upvalue[symbol.Index].Get()
+	default: // LOCAL_SCOPE 和其他
 		c.emit(vm.OP_GET_LOCAL, reg, symbol.Index) // R[reg] := L(symbol.Index)
 	}
 
@@ -318,13 +374,52 @@ func (c *Compiler) compileAssignmentExpression(expr *parser1.AssignmentStatement
 	}
 
 	// 发射存储指令
-	if symbol.Scope == GLOBAL_SCOPE {
+	switch symbol.Scope {
+	case GLOBAL_SCOPE:
 		c.emit(vm.OP_SET_GLOBAL, valueReg, symbol.Index) // G(symbol.Index) := R[valueReg]
-	} else {
+	case FREE_SCOPE:
+		c.emit(vm.OP_SET_UPVALUE, valueReg, symbol.Index) // Upvalue[symbol.Index].Set(R[valueReg])
+	default: // LOCAL_SCOPE 和其他
 		c.emit(vm.OP_SET_LOCAL, valueReg, symbol.Index) // L(symbol.Index) := R[valueReg]
 	}
 
 	// 赋值表达式的结果就是被赋的值
+	return valueReg, nil
+}
+
+// compileIndexAssignmentExpression 编译索引赋值表达式
+func (c *Compiler) compileIndexAssignmentExpression(expr *parser1.IndexAssignmentStatement) (int, error) {
+	// 编译右值表达式
+	valueReg, err := c.compileExpression(expr.Value)
+	if err != nil {
+		return -1, err
+	}
+
+	// 编译索引表达式（应该是IndexExpression）
+	indexExpr, ok := expr.Left.(*parser1.IndexExpression)
+	if !ok {
+		return -1, &CompilationError{
+			Message: "invalid index assignment target",
+			Node:    expr.Left,
+		}
+	}
+
+	// 编译被索引的表达式（数组）
+	arrayReg, err := c.compileExpression(indexExpr.Left)
+	if err != nil {
+		return -1, err
+	}
+
+	// 编译索引表达式
+	indexReg, err := c.compileExpression(indexExpr.Index)
+	if err != nil {
+		return -1, err
+	}
+
+	// 发射数组设置指令: ARRAY_SET arrayReg, indexReg, valueReg
+	c.emit(vm.OP_ARRAY_SET, arrayReg, indexReg, valueReg)
+
+	// 索引赋值表达式的结果就是被赋的值
 	return valueReg, nil
 }
 
@@ -369,6 +464,8 @@ func (c *Compiler) compileInfixExpression(expr *parser1.InfixExpression) (int, e
 		c.emit(vm.OP_MUL, resultReg, leftReg, rightReg) // R[resultReg] := R[leftReg] * R[rightReg]
 	case "/":
 		c.emit(vm.OP_DIV, resultReg, leftReg, rightReg) // R[resultReg] := R[leftReg] / R[rightReg]
+	case "%":
+		c.emit(vm.OP_MOD, resultReg, leftReg, rightReg) // R[resultReg] := R[leftReg] % R[rightReg]
 	case "==":
 		c.emit(vm.OP_EQ, resultReg, leftReg, rightReg) // R[resultReg] := R[leftReg] == R[rightReg]
 	case "!=":
@@ -492,7 +589,7 @@ func (c *Compiler) compileIfExpression(expr *parser1.IfStatement) (int, error) {
 					if err != nil {
 						return -1, err
 					}
-					c.emit(vm.OP_LOADK, resultReg, c.addConstant(vm.NewNilValue()))
+					c.emit(vm.OP_LOADK, resultReg, c.addConstant(vm.NewNilValueGC()))
 				}
 			} else {
 				// 其他语句正常编译
@@ -505,7 +602,7 @@ func (c *Compiler) compileIfExpression(expr *parser1.IfStatement) (int, error) {
 
 		// 如果else块为空，设置结果为nil
 		if len(elseStmts) == 0 {
-			c.emit(vm.OP_LOADK, resultReg, c.addConstant(vm.NewNilValue()))
+			c.emit(vm.OP_LOADK, resultReg, c.addConstant(vm.NewNilValueGC()))
 		}
 
 		// 回填跳过else块的跳转指令
@@ -716,21 +813,181 @@ func (c *Compiler) compileBlockStatement(block *parser1.BlockStatement) error {
 }
 
 func (c *Compiler) compileFunctionLiteral(expr *parser1.FunctionLiteral) (int, error) {
-	// 简化的函数字面量编译
-	// TODO: 实现函数编译
-	return -1, &CompilationError{
-		Message: "function literals not yet implemented",
-		Node:    expr,
+	// 进入新的编译作用域
+	c.enterScope()
+
+	// 创建新的符号表作用域
+	enclosedSymbolTable := NewEnclosedSymbolTable(c.symbolTable)
+	c.symbolTable = enclosedSymbolTable
+
+	// 创建新函数
+	var functionName string
+	if expr.Name != nil {
+		functionName = expr.Name.Value
+	} else {
+		functionName = "<anonymous>"
+	}
+
+	function := vm.NewFunction(functionName)
+	function.ParamCount = len(expr.Parameters)
+
+	// 先定义参数为局部变量（从索引0开始）
+	for _, param := range expr.Parameters {
+		c.symbolTable.Define(param.Value)
+	}
+
+	// 重置寄存器分配器，从参数后开始
+	c.nextRegister = function.ParamCount
+
+	// 如果是具名函数，为了支持递归，我们需要在函数体内定义函数名
+	// 但不应该占用局部变量的索引，因为函数名在编译时已经确定
+	if expr.Name != nil {
+		// 将函数名添加到符号表，但使用特殊的处理
+		// 这里暂时跳过，因为递归调用需要特殊处理
+		// TODO: 实现正确的递归函数支持
+	}
+
+	// 编译函数体
+	err := c.compileBlockStatement(expr.Body)
+	if err != nil {
+		return -1, err
+	}
+
+	// 如果函数体没有显式return，添加隐式return nil
+	lastInst := c.scopes[c.scopeIndex].lastInstruction
+	if lastInst.OpCode != vm.OP_RETURN {
+		nilReg := c.allocateRegister()
+		c.emit(vm.OP_LOADK, nilReg, c.addConstant(vm.NewNilValueGC()))
+		c.emit(vm.OP_RETURN, nilReg, 1, 0)
+	}
+
+	// 设置函数的指令和最大栈大小
+	function.Instructions = c.currentInstructions()
+	function.Constants = c.constants
+	function.MaxStackSize = c.maxRegisters
+
+	// 检查是否有自由变量（需要创建闭包）
+	freeSymbols := c.symbolTable.FreeSymbols
+	numFreeVars := len(freeSymbols)
+
+	// 退出作用域
+	c.leaveScope()
+	c.symbolTable = c.symbolTable.Outer
+
+	// 将编译好的函数注册到全局Function注册表
+	functionID := vm.RegisterFunction(function)
+
+	if numFreeVars == 0 {
+		// 没有自由变量，创建普通函数
+		functionValue := vm.NewFunctionValueGCFromID(functionID)
+		constIndex := c.addConstant(functionValue)
+
+		// 重要修复：确保函数对象不会分配到已被局部变量占用的寄存器
+		// 扫描当前符号表的局部变量，找到最大的索引
+		maxLocalIndex := -1
+		if c.symbolTable != nil {
+			for _, symbol := range c.symbolTable.store {
+				if symbol.Scope == LOCAL_SCOPE && symbol.Index > maxLocalIndex {
+					maxLocalIndex = symbol.Index
+				}
+			}
+		}
+
+		// 如果有局部变量，确保函数对象的寄存器在所有局部变量之后
+		if maxLocalIndex >= 0 && c.nextRegister <= maxLocalIndex {
+			c.nextRegister = maxLocalIndex + 1
+		}
+
+		reg := c.allocateRegister()
+		c.emit(vm.OP_LOADK, reg, constIndex)
+		return reg, nil
+	} else {
+		// 有自由变量，需要创建闭包
+		// 先加载函数到寄存器
+		functionValue := vm.NewFunctionValueGCFromID(functionID)
+		constIndex := c.addConstant(functionValue)
+
+		// 重要修复：确保函数对象不会分配到已被局部变量占用的寄存器
+		// 扫描当前符号表的局部变量，找到最大的索引
+		maxLocalIndex := -1
+		if c.symbolTable != nil {
+			for _, symbol := range c.symbolTable.store {
+				if symbol.Scope == LOCAL_SCOPE && symbol.Index > maxLocalIndex {
+					maxLocalIndex = symbol.Index
+				}
+			}
+		}
+
+		// 如果有局部变量，确保函数对象的寄存器在所有局部变量之后
+		if maxLocalIndex >= 0 && c.nextRegister <= maxLocalIndex {
+			c.nextRegister = maxLocalIndex + 1
+		}
+
+		funcReg := c.allocateRegister()
+		c.emit(vm.OP_LOADK, funcReg, constIndex)
+
+		// 加载自由变量到寄存器
+		captureRegs := make([]int, numFreeVars)
+		for i, freeVar := range freeSymbols {
+			captureReg := c.allocateRegister()
+
+			// 根据原始符号的作用域生成正确的指令
+			if freeVar.Scope == GLOBAL_SCOPE {
+				c.emit(vm.OP_GET_GLOBAL, captureReg, freeVar.Index)
+			} else {
+				// 使用GET_LOCAL指令获取局部变量
+				c.emit(vm.OP_GET_LOCAL, captureReg, freeVar.Index)
+			}
+			captureRegs[i] = captureReg
+		}
+
+		// 将捕获变量移动到连续的寄存器位置
+		// MAKE_CLOSURE 期望: function在B，捕获变量在B+1, B+2, ...
+		baseReg := funcReg + 1
+		for i, captureReg := range captureRegs {
+			targetReg := baseReg + i
+			if captureReg != targetReg {
+				c.emit(vm.OP_MOVE, targetReg, captureReg, 0)
+			}
+		}
+
+		// 发射创建闭包指令
+		closureReg := c.allocateRegister()
+		c.emit(vm.OP_MAKE_CLOSURE, closureReg, funcReg, numFreeVars)
+
+		return closureReg, nil
 	}
 }
 
 func (c *Compiler) compileCallExpression(expr *parser1.CallExpression) (int, error) {
-	// 简化的函数调用编译
-	// TODO: 实现函数调用
-	return -1, &CompilationError{
-		Message: "function calls not yet implemented",
-		Node:    expr,
+	// 编译函数表达式
+	funcReg, err := c.compileExpression(expr.Function)
+	if err != nil {
+		return -1, err
 	}
+
+	// 编译参数
+	argCount := len(expr.Arguments)
+	for i, arg := range expr.Arguments {
+		argReg, err := c.compileExpression(arg)
+		if err != nil {
+			return -1, err
+		}
+
+		// 将参数移动到函数寄存器之后的位置
+		// CALL指令期望: R(A) = 函数, R(A+1) = 参数1, R(A+2) = 参数2, ...
+		targetReg := funcReg + 1 + i
+		if argReg != targetReg {
+			c.emit(vm.OP_MOVE, targetReg, argReg, 0)
+		}
+	}
+
+	// 发射CALL指令
+	// CALL A B C: 调用R(A)，参数数量为B-1，期望返回值数量为C
+	c.emit(vm.OP_CALL, funcReg, argCount+1, 1) // +1 because B includes the function itself
+
+	// 调用后，结果在funcReg位置
+	return funcReg, nil
 }
 
 func (c *Compiler) compileArrayLiteral(expr *parser1.ArrayLiteral) (int, error) {
@@ -761,6 +1018,39 @@ func (c *Compiler) compileArrayLiteral(expr *parser1.ArrayLiteral) (int, error) 
 	return arrayReg, nil
 }
 
+// compileArrayConstructor 编译数组构造器 Array(capacity) 或 Array(capacity, defaultValue)
+func (c *Compiler) compileArrayConstructor(expr *parser1.ArrayConstructor) (int, error) {
+	// 编译容量表达式
+	capacityReg, err := c.compileExpression(expr.Capacity)
+	if err != nil {
+		return -1, err
+	}
+
+	// 分配结果寄存器
+	arrayReg := c.allocateRegister()
+
+	// 编译默认值表达式（如果有）
+	if expr.DefaultValue != nil {
+		defaultValueReg, err := c.compileExpression(expr.DefaultValue)
+		if err != nil {
+			return -1, err
+		}
+
+		// 发射创建带默认值的数组指令: NEW_ARRAY_WITH_CAPACITY arrayReg, capacityReg, defaultValueReg
+		c.emit(vm.OP_NEW_ARRAY_WITH_CAPACITY, arrayReg, capacityReg, defaultValueReg)
+	} else {
+		// 修复：加载nil常量到寄存器，然后传递寄存器号
+		nilReg := c.allocateRegister()
+		nilConstIndex := c.addConstant(vm.NewNilValueGC())
+		c.emit(vm.OP_LOADK, nilReg, nilConstIndex)
+
+		// 发射创建空数组指令: NEW_ARRAY_WITH_CAPACITY arrayReg, capacityReg, nilReg
+		c.emit(vm.OP_NEW_ARRAY_WITH_CAPACITY, arrayReg, capacityReg, nilReg)
+	}
+
+	return arrayReg, nil
+}
+
 func (c *Compiler) compileIndexExpression(expr *parser1.IndexExpression) (int, error) {
 	// 编译被索引的表达式（数组）
 	leftReg, err := c.compileExpression(expr.Left)
@@ -785,8 +1075,29 @@ func (c *Compiler) compileIndexExpression(expr *parser1.IndexExpression) (int, e
 
 // 辅助方法
 
-// allocateRegister 分配一个新寄存器
+// allocateRegister 分配一个新寄存器（优化版）
 func (c *Compiler) allocateRegister() int {
+	// 首先尝试从空闲寄存器池中获取
+	if len(c.freeRegisters) > 0 {
+		reg := c.freeRegisters[len(c.freeRegisters)-1]
+		c.freeRegisters = c.freeRegisters[:len(c.freeRegisters)-1]
+
+		// 确保不会重用局部变量的寄存器
+		if c.symbolTable != nil {
+			// 检查当前符号表的局部变量是否与分配的寄存器冲突
+			for _, symbol := range c.symbolTable.store {
+				if symbol.Scope == LOCAL_SCOPE && symbol.Index == reg {
+					// 如果冲突，继续分配新的寄存器
+					goto allocateNew
+				}
+			}
+		}
+
+		return reg
+	}
+
+allocateNew:
+	// 如果没有空闲寄存器，或者空闲寄存器与局部变量冲突，分配新的
 	reg := c.nextRegister
 	c.nextRegister++
 	if c.nextRegister > c.maxRegisters {
@@ -795,21 +1106,40 @@ func (c *Compiler) allocateRegister() int {
 	return reg
 }
 
-// releaseRegister 释放寄存器（简化版，重置到某个位置）
+// releaseRegister 释放寄存器（优化版）
 func (c *Compiler) releaseRegister(reg int) {
-	// 简化的寄存器释放：如果是最后分配的寄存器，可以回退
-	if reg == c.nextRegister-1 {
-		c.nextRegister = reg
+	if reg >= 0 && reg < c.nextRegister {
+		// 将寄存器添加到空闲池
+		c.freeRegisters = append(c.freeRegisters, reg)
 	}
+}
+
+// pushRegister 将寄存器推入栈（用于嵌套表达式）
+func (c *Compiler) pushRegister(reg int) {
+	c.registerStack = append(c.registerStack, reg)
+}
+
+// popRegister 从栈中弹出寄存器并释放
+func (c *Compiler) popRegister() int {
+	if len(c.registerStack) == 0 {
+		return -1
+	}
+
+	reg := c.registerStack[len(c.registerStack)-1]
+	c.registerStack = c.registerStack[:len(c.registerStack)-1]
+	c.releaseRegister(reg)
+	return reg
 }
 
 // resetRegisters 重置寄存器分配器（用于语句之间）
 func (c *Compiler) resetRegisters() {
 	c.nextRegister = 0
+	c.freeRegisters = c.freeRegisters[:0] // 清空但保留容量
+	c.registerStack = c.registerStack[:0] // 清空但保留容量
 }
 
 // addConstant 添加常量到常量池
-func (c *Compiler) addConstant(obj vm.Value) int {
+func (c *Compiler) addConstant(obj vm.ValueGC) int {
 	c.constants = append(c.constants, obj)
 	return len(c.constants) - 1
 }
@@ -878,10 +1208,104 @@ func (c *Compiler) currentInstructions() []vm.Instruction {
 	return c.scopes[c.scopeIndex].instructions
 }
 
+// enterScope 进入新的编译作用域
+func (c *Compiler) enterScope() {
+	scope := &CompileScope{
+		instructions:        make([]vm.Instruction, 0),
+		lastInstruction:     EmittedInstruction{},
+		previousInstruction: EmittedInstruction{},
+		// 保存当前寄存器状态
+		savedNextRegister: c.nextRegister,
+		savedMaxRegisters: c.maxRegisters,
+	}
+	c.scopes = append(c.scopes, scope)
+	c.scopeIndex++
+
+	// 重置寄存器分配器
+	c.nextRegister = 0
+	c.maxRegisters = 0
+}
+
+// leaveScope 离开当前编译作用域
+func (c *Compiler) leaveScope() []vm.Instruction {
+	instructions := c.currentInstructions()
+
+	// 恢复上一个作用域的寄存器状态
+	if c.scopeIndex > 0 {
+		parentScope := c.scopes[c.scopeIndex-1]
+
+		// 重要修复：我们需要更新父作用域的寄存器状态，确保后续的寄存器分配
+		// 能够正确地继续，而不是重用已经被占用的寄存器
+
+		// 首先恢复到父作用域的状态
+		c.nextRegister = parentScope.savedNextRegister
+		c.maxRegisters = parentScope.savedMaxRegisters
+
+		// 然后更新父作用域的状态，确保后续的寄存器分配不会冲突
+		// 重新扫描父作用域的局部变量，更新nextRegister
+		maxLocalIndex := -1
+		if c.symbolTable != nil {
+			for _, symbol := range c.symbolTable.store {
+				if symbol.Scope == LOCAL_SCOPE && symbol.Index > maxLocalIndex {
+					maxLocalIndex = symbol.Index
+				}
+			}
+		}
+
+		// 确保nextRegister至少在所有局部变量之后
+		if maxLocalIndex >= 0 && c.nextRegister <= maxLocalIndex {
+			c.nextRegister = maxLocalIndex + 1
+		}
+	}
+
+	c.scopes = c.scopes[:len(c.scopes)-1]
+	c.scopeIndex--
+
+	return instructions
+}
+
+// compileNamedFunctionDefinition 编译具名函数定义
+func (c *Compiler) compileNamedFunctionDefinition(funcLit *parser1.FunctionLiteral) error {
+	// 先定义函数名，让函数体内可以引用自己（支持递归）
+	symbol := c.symbolTable.Define(funcLit.Name.Value)
+
+	// 编译函数字面量
+	funcReg, err := c.compileFunctionLiteral(funcLit)
+	if err != nil {
+		return err
+	}
+
+	// 为局部函数分配固定的寄存器，与变量使用相同的策略
+	var targetReg int
+	if symbol.Scope == LOCAL_SCOPE {
+		// 局部函数使用固定的寄存器位置，确保不会被临时计算重用
+		targetReg = symbol.Index
+		if funcReg != targetReg {
+			c.emit(vm.OP_MOVE, targetReg, funcReg, 0) // 移动到固定位置
+		}
+		// 确保寄存器分配器不会重用局部函数寄存器
+		if c.nextRegister <= targetReg {
+			c.nextRegister = targetReg + 1
+		}
+	} else {
+		targetReg = funcReg
+	}
+
+	// 重要修复：无论是普通函数还是闭包，都要存储到符号对应的位置
+	// 这确保了后续的标识符解析能够获取到正确的对象
+	if symbol.Scope == GLOBAL_SCOPE {
+		c.emit(vm.OP_SET_GLOBAL, targetReg, symbol.Index)
+	} else {
+		c.emit(vm.OP_SET_LOCAL, targetReg, symbol.Index)
+	}
+
+	return nil
+}
+
 // ByteCode 编译结果
 type ByteCode struct {
 	Instructions []vm.Instruction
-	Constants    []vm.Value
+	Constants    []vm.ValueGC
 }
 
 // ByteCode 返回编译后的字节码
@@ -890,4 +1314,26 @@ func (c *Compiler) ByteCode() *ByteCode {
 		Instructions: c.currentInstructions(),
 		Constants:    c.constants,
 	}
+}
+
+// calculateOptimalStackSize 计算最优的栈大小
+func (c *Compiler) calculateOptimalStackSize() int {
+	// 基于实际使用的最大寄存器数量计算
+	baseSize := c.maxRegisters
+
+	// 添加安全余量：50%的缓冲区，最少256个寄存器
+	safetyMargin := int(float64(baseSize) * 0.5)
+	optimalSize := baseSize + safetyMargin
+
+	// 设置最小值和最大值
+	const minStackSize = 256
+	const maxStackSize = 8192
+
+	if optimalSize < minStackSize {
+		optimalSize = minStackSize
+	} else if optimalSize > maxStackSize {
+		optimalSize = maxStackSize
+	}
+
+	return optimalSize
 }

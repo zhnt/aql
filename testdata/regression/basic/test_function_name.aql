@@ -1,0 +1,7 @@
+// 测试函数名在函数体内的可见性
+function test() {
+    // 直接返回函数名，看看是否可见
+    return test;
+}
+
+test(); 

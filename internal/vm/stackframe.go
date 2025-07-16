@@ -10,14 +10,17 @@ type StackFrame struct {
 	Function *Function
 	PC       int // 程序计数器
 
-	// 寄存器/局部变量（使用优化的Value）
-	Registers []Value
+	// 寄存器/局部变量（使用GC安全的ValueGC）
+	Registers []ValueGC
 	Base      int // 寄存器基址
 
 	// 调用上下文
 	Caller       *StackFrame // 调用者栈帧
 	ReturnAddr   int         // 返回地址
 	ExpectedRets int         // 期望返回值数量
+
+	// Upvalue支持（闭包）
+	Upvalues []*Upvalue // 当前帧的upvalue表
 }
 
 // NewStackFrame 创建新栈帧
@@ -31,7 +34,7 @@ func NewStackFrame(function *Function, caller *StackFrame, returnAddr int) *Stac
 	frame := &StackFrame{
 		Function:     function,
 		PC:           0,
-		Registers:    make([]Value, regSize),
+		Registers:    make([]ValueGC, regSize),
 		Base:         0,
 		Caller:       caller,
 		ReturnAddr:   returnAddr,
@@ -40,22 +43,22 @@ func NewStackFrame(function *Function, caller *StackFrame, returnAddr int) *Stac
 
 	// 初始化寄存器为nil值
 	for i := range frame.Registers {
-		frame.Registers[i] = NewNilValue()
+		frame.Registers[i] = NewNilValueGC()
 	}
 
 	return frame
 }
 
 // GetRegister 获取寄存器值
-func (sf *StackFrame) GetRegister(index int) Value {
+func (sf *StackFrame) GetRegister(index int) ValueGC {
 	if index < 0 || index >= len(sf.Registers) {
-		return NewNilValue()
+		return NewNilValueGC()
 	}
 	return sf.Registers[index]
 }
 
 // SetRegister 设置寄存器值
-func (sf *StackFrame) SetRegister(index int, value Value) error {
+func (sf *StackFrame) SetRegister(index int, value ValueGC) error {
 	if index < 0 || index >= len(sf.Registers) {
 		return fmt.Errorf("register index %d out of bounds", index)
 	}
@@ -64,7 +67,7 @@ func (sf *StackFrame) SetRegister(index int, value Value) error {
 }
 
 // GetConstant 获取函数常量
-func (sf *StackFrame) GetConstant(index int) Value {
+func (sf *StackFrame) GetConstant(index int) ValueGC {
 	return sf.Function.GetConstant(index)
 }
 
@@ -99,7 +102,7 @@ func (sf *StackFrame) CopyRegisters(srcStart, dstStart, count int) error {
 
 // ClearRegisters 清空指定范围的寄存器
 func (sf *StackFrame) ClearRegisters(start, count int) {
-	nilValue := NewNilValue()
+	nilValue := NewNilValueGC()
 	for i := 0; i < count; i++ {
 		idx := start + i
 		if idx >= 0 && idx < len(sf.Registers) {
@@ -109,7 +112,7 @@ func (sf *StackFrame) ClearRegisters(start, count int) {
 }
 
 // SetParameters 设置函数参数
-func (sf *StackFrame) SetParameters(params []Value) {
+func (sf *StackFrame) SetParameters(params []ValueGC) {
 	for i, param := range params {
 		if i < len(sf.Registers) {
 			sf.Registers[i] = param
@@ -118,18 +121,57 @@ func (sf *StackFrame) SetParameters(params []Value) {
 }
 
 // GetReturnValues 获取返回值
-func (sf *StackFrame) GetReturnValues(count int) []Value {
+func (sf *StackFrame) GetReturnValues(count int) []ValueGC {
 	if count <= 0 {
 		return nil
 	}
 
-	results := make([]Value, count)
+	results := make([]ValueGC, count)
 	for i := 0; i < count; i++ {
 		if i < len(sf.Registers) {
 			results[i] = sf.Registers[i]
 		} else {
-			results[i] = NewNilValue()
+			results[i] = NewNilValueGC()
 		}
 	}
 	return results
+}
+
+// Upvalue相关方法
+
+// GetUpvalue 获取upvalue
+func (sf *StackFrame) GetUpvalue(index int) *Upvalue {
+	if sf.Upvalues == nil || index < 0 || index >= len(sf.Upvalues) {
+		return nil
+	}
+	return sf.Upvalues[index]
+}
+
+// SetUpvalue 设置upvalue
+func (sf *StackFrame) SetUpvalue(index int, upvalue *Upvalue) error {
+	if sf.Upvalues == nil {
+		sf.Upvalues = make([]*Upvalue, index+1)
+	} else if index >= len(sf.Upvalues) {
+		// 扩展upvalue数组
+		newUpvalues := make([]*Upvalue, index+1)
+		copy(newUpvalues, sf.Upvalues)
+		sf.Upvalues = newUpvalues
+	}
+	sf.Upvalues[index] = upvalue
+	return nil
+}
+
+// CloseUpvalues 关闭upvalue到堆（栈帧销毁时调用）
+func (sf *StackFrame) CloseUpvalues() {
+	if sf.Upvalues == nil {
+		return
+	}
+
+	for _, upvalue := range sf.Upvalues {
+		if upvalue != nil {
+			if !upvalue.IsClosed {
+				upvalue.Close()
+			}
+		}
+	}
 }

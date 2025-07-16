@@ -1,0 +1,15 @@
+// 测试基础闭包
+function createCounter() {
+    let count = 0;
+    
+    function increment() {
+        count = count + 1;
+        return count;
+    }
+    
+    return increment;
+}
+
+let counter = createCounter();
+counter();
+counter(); 

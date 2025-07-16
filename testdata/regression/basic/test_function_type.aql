@@ -1,0 +1,17 @@
+// 测试函数名的具体情况
+function mytest() {
+    // 先返回一个常量确认函数能工作
+    return 123;
+}
+
+function checkSelf() {
+    // 测试能否访问自己
+    if (checkSelf) {
+        return "found";
+    } else {
+        return "not found";
+    }
+}
+
+mytest();
+checkSelf(); 

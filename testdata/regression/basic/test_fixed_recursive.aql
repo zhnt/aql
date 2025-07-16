@@ -1,0 +1,10 @@
+// 固定参数的递归测试
+function countdown(n) {
+    if (n <= 0) {
+        return 0;
+    } else {
+        return countdown(2); // 固定参数，不计算
+    }
+}
+
+countdown(3); 

@@ -1,0 +1,57 @@
+// AQL复杂对象GC测试 - 验证混合对象类型的GC正确性
+
+// 1. 字符串GC测试
+function testStringGC() {
+    let str1 = "Hello World";
+    let str2 = "This is a longer string that should be GC managed";
+    return str1 + " " + str2;
+}
+
+// 2. 数组GC测试  
+function testArrayGC() {
+    let arr1 = [1, 2, 3];
+    let arr2 = ["a", "b", "c"];
+    let arr3 = [arr1, arr2];  // 嵌套数组
+    return arr3[0][1] + arr3[1][0];  // 应该返回 "2a"
+}
+
+// 3. 混合对象GC测试
+function testMixedGC() {
+    let str = "test";
+    let arr = [1, str, 3];
+    let nested = [arr, "outer"];
+    return nested[0][1] + nested[1];  // "test" + "outer" = "testouter"
+}
+
+// 4. 复杂嵌套结构GC测试
+function testComplexNested() {
+    let data = [
+        "first",
+        ["nested", "array"],
+        "third"
+    ];
+    
+    let result = data[0] + data[1][0] + data[2];
+    return result;  // "firstnestedthird"
+}
+
+// 5. 深度嵌套数组测试
+function testDeepNested() {
+    let deep = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]];
+    let result = deep[0][0][0] + deep[1][1][1];  // 1 + 8 = 9
+    return result;
+}
+
+// 执行所有测试
+let result1 = testStringGC();
+let result2 = testArrayGC(); 
+let result3 = testMixedGC();
+let result4 = testComplexNested();
+let result5 = testDeepNested();
+
+// 验证结果
+result1;  // 应该是字符串
+result2;  // 应该是 "2a"
+result3;  // 应该是 "testouter"  
+result4;  // 应该是 "firstnestedthird"
+result5;  // 应该是 9 

@@ -1,0 +1,22 @@
+// 调试二维数组访问
+
+// 创建简单的二维数组
+let matrix = [
+    [1, 2],
+    [3, 4]
+];
+
+// 测试第一层访问
+let row0 = matrix[0];    // 应该是 [1, 2]
+let row1 = matrix[1];    // 应该是 [3, 4]
+
+// 测试第二层访问
+let element00 = row0[0];  // 应该是 1
+let element01 = row0[1];  // 应该是 2
+let element10 = row1[0];  // 应该是 3
+let element11 = row1[1];  // 应该是 4
+
+// 计算结果
+let sum = element00 + element01 + element10 + element11;
+
+return sum; 

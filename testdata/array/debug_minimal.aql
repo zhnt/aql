@@ -1,0 +1,9 @@
+// 最小化测试
+
+// 创建一个简单的一维数组
+let arr = [1, 2];
+
+// 直接访问元素
+let element = arr[0];  // 应该是数字 1
+
+return element; 

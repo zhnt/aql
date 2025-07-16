@@ -1,0 +1,15 @@
+// AQL数组简单测试
+
+// 1. 基本数组创建
+let arr1 = [1, 2, 3];
+
+// 2. 数组访问
+let first = arr1[0];
+let second = arr1[1];
+let third = arr1[2];
+
+// 3. 简单计算
+let sum = first + second + third;
+
+// 返回结果
+sum;  // 应该是 6 

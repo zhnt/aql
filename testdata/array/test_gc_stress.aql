@@ -1,0 +1,98 @@
+// GC压力测试 - 修复版本
+
+// 创建预定义的大量字符串对象数组
+let bigStringArray = [
+    "String_000", "String_001", "String_002", "String_003", "String_004",
+    "String_005", "String_006", "String_007", "String_008", "String_009",
+    "String_010", "String_011", "String_012", "String_013", "String_014",
+    "String_015", "String_016", "String_017", "String_018", "String_019"
+];
+
+// 验证大量字符串
+let first = bigStringArray[0];
+let tenth = bigStringArray[9];
+let twentieth = bigStringArray[19];
+
+// 创建大量嵌套数组
+let bigNestedArray = [
+    ["Nested_0_0", "Nested_0_1"],
+    ["Nested_1_0", "Nested_1_1"],
+    ["Nested_2_0", "Nested_2_1"],
+    ["Nested_3_0", "Nested_3_1"],
+    ["Nested_4_0", "Nested_4_1"],
+    ["Nested_5_0", "Nested_5_1"],
+    ["Nested_6_0", "Nested_6_1"],
+    ["Nested_7_0", "Nested_7_1"],
+    ["Nested_8_0", "Nested_8_1"],
+    ["Nested_9_0", "Nested_9_1"]
+];
+
+// 访问嵌套数组
+let firstNested = bigNestedArray[0][0];
+let fifthNested = bigNestedArray[4][1];
+let tenthNested = bigNestedArray[9][0];
+
+// 创建深层嵌套结构
+let deepNested = [
+    [["Deep_0_0_0", "Deep_0_0_1"], ["Deep_0_1_0", "Deep_0_1_1"]],
+    [["Deep_1_0_0", "Deep_1_0_1"], ["Deep_1_1_0", "Deep_1_1_1"]],
+    [["Deep_2_0_0", "Deep_2_0_1"], ["Deep_2_1_0", "Deep_2_1_1"]],
+    [["Deep_3_0_0", "Deep_3_0_1"], ["Deep_3_1_0", "Deep_3_1_1"]],
+    [["Deep_4_0_0", "Deep_4_0_1"], ["Deep_4_1_0", "Deep_4_1_1"]],
+    [["Deep_5_0_0", "Deep_5_0_1"], ["Deep_5_1_0", "Deep_5_1_1"]],
+    [["Deep_6_0_0", "Deep_6_0_1"], ["Deep_6_1_0", "Deep_6_1_1"]],
+    [["Deep_7_0_0", "Deep_7_0_1"], ["Deep_7_1_0", "Deep_7_1_1"]],
+    [["Deep_8_0_0", "Deep_8_0_1"], ["Deep_8_1_0", "Deep_8_1_1"]],
+    [["Deep_9_0_0", "Deep_9_0_1"], ["Deep_9_1_0", "Deep_9_1_1"]]
+];
+
+// 字符串处理和组合
+let baseString = "Base";
+let result1 = baseString + "_" + first;
+let result2 = baseString + "_" + tenth; 
+let result3 = firstNested + "_" + fifthNested;
+let result4 = result1 + "_" + result2;
+let result5 = result3 + "_" + result4;
+let result6 = "Complex_" + result5;
+let result7 = result6 + "_Processed";
+let result8 = result7 + "_Final";
+let result9 = result8 + "_Ultimate";
+let result10 = result9 + "_Complete";
+
+// 大量数组重新赋值
+let reassignArray = ["A", "B", "C"];
+reassignArray[0] = "Modified_A";
+reassignArray[1] = "Modified_B";
+reassignArray[2] = "Modified_C";
+
+// 验证重新赋值
+let reassignedFirst = reassignArray[0];
+let reassignedSecond = reassignArray[1];
+let reassignedThird = reassignArray[2];
+
+// 循环风格的数组操作
+let loopArray = ["L0", "L1", "L2", "L3", "L4"];
+let access0 = loopArray[0];
+let access1 = loopArray[1];
+let access2 = loopArray[2];
+let access3 = loopArray[3];
+let access4 = loopArray[4];
+
+// 最终的复杂混合数组
+let complexMix = [
+    ["Complex_Mix_0", "Complex_Mix_1"],
+    "Simple_String",
+    ["Nested_Complex", "More_Nested"],
+    result10,
+    ["Final_Nested", "Ultimate_Nested"]
+];
+
+// 访问复杂混合数组
+let arrayElement = complexMix[0];
+let stringElement = complexMix[1];
+let nestedBefore = complexMix[2][0];
+let nestedAfter = complexMix[2][1];
+
+// 计算最终结果
+let finalResult = 199 + 1;
+return finalResult; 

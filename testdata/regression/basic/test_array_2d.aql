@@ -1,0 +1,56 @@
+// AQL二维数组测试
+
+// 1. 二维数组创建
+let matrix = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+];
+
+// 2. 二维数组访问
+let element00 = matrix[0][0];  // 1
+let element11 = matrix[1][1];  // 5
+let element22 = matrix[2][2];  // 9
+
+// 3. 二维数组修改
+matrix[1][1] = 50;  // 修改中心元素
+matrix[0][2] = 30;  // 修改第一行最后一个元素
+
+// 4. 字符串二维数组
+let stringMatrix = [
+    ["a", "b"],
+    ["c", "d"],
+    ["e", "f"]
+];
+
+let str1 = stringMatrix[0][0];  // "a"
+let str2 = stringMatrix[2][1];  // "f"
+
+// 5. 混合类型二维数组
+let mixedMatrix = [
+    [1, "text"],
+    ["hello", 42],
+    [3.14, "end"]
+];
+
+let num1 = mixedMatrix[0][0];   // 1
+let text1 = mixedMatrix[1][0];  // "hello"
+let num2 = mixedMatrix[1][1];   // 42
+
+// 6. 不规则二维数组
+let irregular = [
+    [1, 2, 3, 4],
+    [5, 6],
+    [7, 8, 9]
+];
+
+let first = irregular[0][0];    // 1
+let second = irregular[1][1];   // 6
+let third = irregular[2][2];    // 9
+
+// 7. 计算验证
+let sum = element00 + element11 + element22;  // 1 + 50 + 9 = 60
+let modified = matrix[0][2] + matrix[1][1];   // 30 + 50 = 80
+
+// 返回验证结果
+sum + modified;  // 60 + 80 = 140 

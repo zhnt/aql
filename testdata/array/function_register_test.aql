@@ -1,0 +1,30 @@
+// 函数寄存器管理测试
+
+// 简单函数：只使用少量寄存器
+function simpleFunc(a, b) {
+    let result = a + b;
+    return result;
+}
+
+// 复杂函数：使用更多寄存器
+function complexFunc(x, y, z) {
+    let temp1 = x + y;
+    let temp2 = y + z;
+    let temp3 = x + z;
+    let temp4 = temp1 + temp2;
+    let temp5 = temp2 + temp3;
+    let temp6 = temp3 + temp4;
+    let final = temp4 + temp5 + temp6;
+    return final;
+}
+
+// 嵌套函数调用
+function nestedCall(n) {
+    let result1 = simpleFunc(n, 10);
+    let result2 = complexFunc(result1, 20, 30);
+    return result2;
+}
+
+// 测试函数调用
+let mainResult = nestedCall(5);
+return mainResult; 

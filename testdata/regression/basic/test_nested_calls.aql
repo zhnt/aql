@@ -1,0 +1,12 @@
+// 测试嵌套函数调用
+function add(a, b) {
+    return a + b;
+}
+
+function multiply(x, y) {
+    return x * y;
+}
+
+// 嵌套调用：add(add(1, 2), multiply(3, 4))
+// 应该是：add(3, 12) = 15
+add(add(1, 2), multiply(3, 4)); 

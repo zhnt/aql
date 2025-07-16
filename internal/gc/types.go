@@ -79,6 +79,13 @@ type GCObject struct {
 	Data   []byte         // 实际数据，柔性数组
 }
 
+// GetDataPtr 获取数据指针
+func (obj *GCObject) GetDataPtr() unsafe.Pointer {
+	// 数据紧跟在GCObjectHeader之后
+	headerPtr := unsafe.Pointer(obj)
+	return unsafe.Pointer(uintptr(headerPtr) + unsafe.Sizeof(GCObjectHeader{}))
+}
+
 // ObjectID 对象唯一标识符
 type ObjectID uint64
 

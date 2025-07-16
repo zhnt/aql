@@ -1,0 +1,9 @@
+// 简化的二维数组测试
+function testMatrix(size) {
+    let outer = Array(size);
+    outer[0] = Array(size, 42);
+    return outer[0];
+}
+
+let result = testMatrix(3);
+return result; 

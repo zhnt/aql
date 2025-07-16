@@ -1,0 +1,32 @@
+// 游戏脚本示例：创建1000个精灵对象，但只用少量寄存器
+
+// 错误写法：每个精灵都用独立的变量（会超过寄存器限制）
+// let sprite1 = "Sprite_1";
+// let sprite2 = "Sprite_2";
+// let sprite3 = "Sprite_3";
+// ... 2000个变量 -> 超过寄存器限制
+
+// 正确写法：使用数组存储，重用临时变量
+let sprites = Array(2000)           // 寄存器1：精灵数组
+let i = 0;                  // 寄存器2：循环计数器
+let tempSprite = "";        // 寄存器3：临时精灵变量
+
+// 创建2000个精灵对象（只用3个寄存器）
+while (i < 2000) {
+    tempSprite = "Sprite_" + i;    // 重用tempSprite变量
+    sprites[i] = tempSprite;        // 存储到数组中
+    i = i + 1;
+}
+
+// 处理精灵（重用变量）
+let currentSprite = "";     // 寄存器4：当前处理的精灵
+i = 0;                      // 重用计数器
+
+while (i < 2000) {
+    currentSprite = sprites[i];     // 重用currentSprite变量
+    // 处理精灵逻辑...
+    i = i + 1;
+}
+
+// 返回精灵数组（包含2000个对象）
+return sprites; 

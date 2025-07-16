@@ -1,0 +1,7 @@
+// 测试函数参数传递
+function show(x) {
+    return x;
+}
+
+// 测试参数传递
+show(42); 

@@ -1,0 +1,13 @@
+// 简化版闭包测试
+function createCounter() {
+    let count = 0;
+    
+    function increment() {
+        return 42;  // 暂时不使用count，避免复杂的upvalue操作
+    }
+    
+    return increment;
+}
+
+let counter = createCounter();
+counter(); 

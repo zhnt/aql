@@ -1,0 +1,19 @@
+// 增加第二个函数的测试
+function createModule() {
+    let privateVar = 100;
+    let counter = 0;
+    
+    function publicMethod1() {
+        return privateVar;
+    }
+    
+    function publicMethod2() {
+        counter = counter + 1;
+        return counter;
+    }
+    
+    return publicMethod1;
+}
+
+let module = createModule();
+module(); 

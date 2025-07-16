@@ -1,0 +1,24 @@
+// 闭包工厂：创建不同类型的处理函数
+function createProcessor(type) {
+    if (type == "add") {
+        function addProcessor() {
+            return 100;  // 加法处理器返回100
+        }
+        return addProcessor;
+    }
+    
+    if (type == "mul") {
+        function mulProcessor() {
+            return 200;  // 乘法处理器返回200
+        }
+        return mulProcessor;
+    }
+    
+    function defaultProcessor() {
+        return 0;
+    }
+    return defaultProcessor;
+}
+
+let addFunc = createProcessor("add");
+addFunc();  // 应该返回100 

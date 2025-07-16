@@ -1,0 +1,11 @@
+// 简单的闭包测试
+function test() {
+    let x = 42;
+    function inner() {
+        return x;
+    }
+    return inner;
+}
+
+let f = test();
+f(); 

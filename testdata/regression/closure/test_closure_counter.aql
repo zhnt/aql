@@ -1,0 +1,13 @@
+// 计数器闭包（最终目标测试）
+function createCounter() {
+    let count = 0;
+    
+    function increment() {
+        count = count + 1;
+        return count;
+    }
+    
+    return increment;
+}
+
+let counter = createCounter(); 

@@ -1,0 +1,26 @@
+// 寄存器生命周期演示
+
+// 函数A：使用少量寄存器
+function functionA() {
+    let a = 1;
+    let b = 2;
+    return a + b;
+}
+
+// 函数B：使用更多寄存器
+function functionB() {
+    let x1 = 10;
+    let x2 = 20;
+    let x3 = 30;
+    let x4 = 40;
+    let x5 = 50;
+    let result = x1 + x2 + x3 + x4 + x5;
+    return result;
+}
+
+// 主函数调用
+let resultA = functionA();  // 创建栈帧A，使用16个寄存器，然后销毁
+let resultB = functionB();  // 创建栈帧B，使用更多寄存器，然后销毁
+
+// 最终结果
+return resultA + resultB; 

@@ -1,0 +1,15 @@
+// 简单游戏脚本测试：创建10个对象
+
+let sprites = [];           // 寄存器1：精灵数组
+let i = 0;                  // 寄存器2：循环计数器
+let tempSprite = "";        // 寄存器3：临时精灵变量
+
+// 创建10个精灵对象（只用3个寄存器）
+while (i < 10) {
+    tempSprite = "Sprite_" + i;    // 重用tempSprite变量
+    sprites[i] = tempSprite;        // 存储到数组中
+    i = i + 1;
+}
+
+// 返回精灵数组（包含10个对象）
+return sprites; 

@@ -1,0 +1,11 @@
+// 测试闭包调用（无变量捕获）
+function outer() {
+    function inner() {
+        return 99;
+    }
+    
+    return inner;
+}
+
+let closure = outer();
+closure(); // 调用闭包 

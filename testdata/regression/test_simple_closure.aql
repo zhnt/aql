@@ -1,0 +1,11 @@
+// 简单闭包测试：返回内部函数
+function outer() {
+    function inner() {
+        return 42;
+    }
+    
+    return inner;  // 返回函数本身
+}
+
+let closure = outer();
+closure();  // 调用返回的函数 

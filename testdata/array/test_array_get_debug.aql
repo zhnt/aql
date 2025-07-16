@@ -1,0 +1,10 @@
+// 调试数组获取
+let testArray = [10, 20, 30];
+
+// 分别获取每个元素
+let elem0 = testArray[0];  // 应该是10
+let elem1 = testArray[1];  // 应该是20
+let elem2 = testArray[2];  // 应该是30
+
+// 测试结果
+elem1; 

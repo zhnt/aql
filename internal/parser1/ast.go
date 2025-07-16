@@ -144,6 +144,26 @@ func (as *AssignmentStatement) String() string {
 	return out.String()
 }
 
+// IndexAssignmentStatement 索引赋值语句节点 (arr[index] = value)
+type IndexAssignmentStatement struct {
+	Token lexer1.Token // = token
+	Left  Expression   // 被赋值的索引表达式 (arr[index])
+	Value Expression   // 值表达式
+}
+
+func (ias *IndexAssignmentStatement) statementNode()       {}
+func (ias *IndexAssignmentStatement) expressionNode()      {} // 同时作为表达式
+func (ias *IndexAssignmentStatement) TokenLiteral() string { return ias.Token.Literal }
+func (ias *IndexAssignmentStatement) String() string {
+	var out strings.Builder
+	out.WriteString(ias.Left.String())
+	out.WriteString(" = ")
+	if ias.Value != nil {
+		out.WriteString(ias.Value.String())
+	}
+	return out.String()
+}
+
 // BlockStatement 代码块语句节点
 type BlockStatement struct {
 	Token      lexer1.Token // { token
@@ -428,6 +448,27 @@ func (al *ArrayLiteral) String() string {
 	out.WriteString("[")
 	out.WriteString(strings.Join(elements, ", "))
 	out.WriteString("]")
+	return out.String()
+}
+
+// ArrayConstructor 数组构造器节点 Array(capacity) 或 Array(capacity, defaultValue)
+type ArrayConstructor struct {
+	Token        lexer1.Token // Array token
+	Capacity     Expression   // 容量表达式
+	DefaultValue Expression   // 默认值表达式（可选）
+}
+
+func (ac *ArrayConstructor) expressionNode()      {}
+func (ac *ArrayConstructor) TokenLiteral() string { return ac.Token.Literal }
+func (ac *ArrayConstructor) String() string {
+	var out strings.Builder
+	out.WriteString("Array(")
+	out.WriteString(ac.Capacity.String())
+	if ac.DefaultValue != nil {
+		out.WriteString(", ")
+		out.WriteString(ac.DefaultValue.String())
+	}
+	out.WriteString(")")
 	return out.String()
 }
 

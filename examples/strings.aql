@@ -1,0 +1,6 @@
+// AQL字符串操作示例
+
+let greeting = "Hello";
+let name = "AQL";
+
+return greeting; 

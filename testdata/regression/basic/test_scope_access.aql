@@ -1,0 +1,12 @@
+// 测试作用域变量访问
+function outer() {
+    let x = 42;
+    
+    function inner() {
+        return x;  // 尝试访问外部变量
+    }
+    
+    return inner();  // 直接调用，不返回函数
+}
+
+outer(); 

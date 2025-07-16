@@ -108,7 +108,7 @@ func (v Value) EqualByReference(other Value) bool {
 		return false
 	}
 
-	if v.Type() == ValueTypeArray {
+	if v.Type() == ValueGCTypeArray {
 		return v.ArrayID() == other.ArrayID()
 	}
 
@@ -117,7 +117,7 @@ func (v Value) EqualByReference(other Value) bool {
 
 // 优化的数组深度比较
 func (v Value) EqualArrayOptimized(other Value) bool {
-	if v.Type() != ValueTypeArray || other.Type() != ValueTypeArray {
+	if v.Type() != ValueGCTypeArray || other.Type() != ValueGCTypeArray {
 		return false
 	}
 

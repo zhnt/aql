@@ -1,0 +1,52 @@
+// 一维数组（复杂类型）测试：赋值、访问、GC
+
+// 1. 测试包含函数的数组
+function createAdder(x) {
+    return function(y) {
+        return x + y;
+    };
+}
+
+let add5 = createAdder(5);
+let add10 = createAdder(10);
+
+let funcArray = [add5, add10];
+
+// 测试函数数组访问
+let firstFunc = funcArray[0];
+let result1 = firstFunc(3); // 应该是 8
+
+// 2. 测试包含数组的数组
+let innerArray1 = [1, 2, 3];
+let innerArray2 = [4, 5, 6];
+let arrayArray = [innerArray1, innerArray2];
+
+// 测试数组数组访问
+let firstArray = arrayArray[0];
+let element = firstArray[1]; // 应该是 2
+
+// 3. 测试混合类型数组
+let mixedArray = [
+    42,
+    "hello",
+    [1, 2, 3],
+    function(x) { return x * 2; }
+];
+
+// 测试混合数组访问
+let num = mixedArray[0];        // 42
+let str = mixedArray[1];        // "hello"
+let arr = mixedArray[2];        // [1, 2, 3]
+let func = mixedArray[3];       // function
+
+// 4. 测试数组赋值
+mixedArray[0] = 99;
+mixedArray[1] = "world";
+
+// 验证赋值后的访问
+let newNum = mixedArray[0];  // 99
+let newStr = mixedArray[1];  // "world"
+
+// 5. 计算结果验证
+let total = result1 + element + num + newNum; // 8 + 2 + 42 + 99 = 151
+total; 

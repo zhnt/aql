@@ -1,0 +1,23 @@
+// AQL基础语法示例
+
+// 变量声明
+let x = 5;
+let message = "Hello AQL";
+let pi = 3.14;
+let isReady = true;
+
+// 常量声明
+const MAX_SIZE = 100;
+
+// 算术运算
+let sum = x + 10;
+let product = sum * 2;
+
+// 字符串操作
+let greeting = "Hello " + "World";
+
+// 布尔运算
+let result = isReady && (x > 0);
+
+// 返回最终结果
+return greeting; 

@@ -181,7 +181,7 @@ func ArrayCopyValue(arrayValue Value) (Value, error) {
 	}
 
 	return Value{
-		typeAndFlags: uint64(ValueTypeArray),
+		typeAndFlags: uint64(ValueGCTypeArray),
 		data:         newID,
 	}, nil
 }
@@ -198,10 +198,12 @@ func ArraySliceValue(arrayValue Value, start, end int) (Value, error) {
 	}
 
 	// 创建切片
-	sliceElements := make([]Value, end-start)
-	copy(sliceElements, array.Elements[start:end])
+	sliceElements := make([]ValueGC, end-start)
+	for i, elem := range array.Elements[start:end] {
+		sliceElements[i] = elem
+	}
 
-	return NewArrayValue(sliceElements), nil
+	return NewArrayValueGC(sliceElements), nil
 }
 
 // =============================================================================

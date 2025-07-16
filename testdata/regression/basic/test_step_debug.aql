@@ -1,0 +1,12 @@
+// 逐步调试递归
+function test(n) {
+    if (n <= 0) {
+        return "base case";
+    } else {
+        return "should recurse";
+    }
+}
+
+// 测试基础情况
+test(0);
+test(1); 

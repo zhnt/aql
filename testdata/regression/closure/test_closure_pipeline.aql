@@ -1,0 +1,30 @@
+// 闭包管道：组合函数处理
+function createStep1() {
+    function process() {
+        return 10;  // 第一步处理
+    }
+    return process;
+}
+
+function createStep2() {
+    function process() {
+        return 20;  // 第二步处理
+    }
+    return process;
+}
+
+function pipeline() {
+    let step1 = createStep1();
+    let step2 = createStep2();
+    
+    function execute() {
+        let result1 = step1();
+        let result2 = step2();
+        return result1 + result2;  // 组合结果
+    }
+    
+    return execute;
+}
+
+let processor = pipeline();
+processor();  // 应该返回30 (10+20) 

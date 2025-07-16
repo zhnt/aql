@@ -1,0 +1,55 @@
+// 复杂对象数组测试 - 简化版本
+
+// 创建字符串数组
+let stringArray = ["Hello", "World", "AQL", "Language"];
+let firstString = stringArray[0];
+let lastString = stringArray[3];
+
+// 修改字符串数组
+stringArray[0] = "Hi";
+stringArray[3] = "System";
+
+// 创建嵌套数组
+let nestedArray = [
+    ["inner1", "inner2"],
+    ["inner3", "inner4"],
+    ["inner5", "inner6"]
+];
+
+// 访问嵌套元素
+let nestedElement = nestedArray[1][0];
+
+// 创建混合类型数组
+let mixedArray = [
+    "字符串",
+    42,
+    ["嵌套", "数组"],
+    "另一个字符串"
+];
+
+// 访问混合类型元素
+let stringElement = mixedArray[0];
+let numberElement = mixedArray[1];
+let nestedArrayElement = mixedArray[2];
+
+// 创建预定义的大数组
+let largeStringArray = [
+    "String_0", "String_1", "String_2", "String_3", "String_4",
+    "String_5", "String_6", "String_7", "String_8", "String_9"
+];
+
+// 访问大数组元素
+let fifthElement = largeStringArray[4];
+let tenthElement = largeStringArray[9];
+
+// 字符串连接测试
+let str1 = "Hello";
+let str2 = "World";
+let combined = str1 + " " + str2;
+
+// 数组中的字符串连接
+let sentence = stringArray[0] + " " + stringArray[1];
+
+// 返回验证结果
+let result = numberElement + 58;
+return result; 

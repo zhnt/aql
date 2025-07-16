@@ -1,0 +1,14 @@
+// 最基本的递归调用测试
+function simple() {
+    return simple; // 返回函数本身，不是调用
+}
+
+function callSelf() {
+    return callSelf(); // 这里是实际的递归调用
+}
+
+// 先测试返回函数本身
+simple();
+
+// 然后测试递归调用（会无限递归，但应该能看到不同的错误）
+callSelf(); 

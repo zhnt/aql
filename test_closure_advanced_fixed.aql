@@ -1,0 +1,13 @@
+// 简化的高级闭包测试
+function createModule() {
+    let privateVar = 100;
+    
+    function publicMethod1() {
+        return privateVar;
+    }
+    
+    return publicMethod1;
+}
+
+let module = createModule();
+module(); 

@@ -1,0 +1,5 @@
+// 测试字符串拼接
+let greeting = "Hello";
+let name = "AQL";
+let message = greeting + " " + name;
+return message; 

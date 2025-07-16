@@ -1,0 +1,69 @@
+// AQL数组边界情况测试
+
+// 1. 空数组
+let emptyArray = [];
+
+// 2. 单元素数组
+let singleElement = [42];
+let single = singleElement[0];  // 42
+
+// 3. 大数组（测试性能和内存）
+let largeArray = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+let first = largeArray[0];   // 1
+let middle = largeArray[4];  // 5
+let last = largeArray[9];    // 10
+
+// 4. 数组中的数组嵌套
+let nestedArrays = [
+    [1, [2, 3]],
+    [[4, 5], 6],
+    [7, [8, [9, 10]]]
+];
+
+let nest1 = nestedArrays[0][0];     // 1
+let nest2 = nestedArrays[1][1];     // 6
+let nest3 = nestedArrays[2][0];     // 7
+
+// 5. 不同类型混合的复杂数组
+let complexArray = [
+    1,
+    "string",
+    [1, 2, 3],
+    "another",
+    [["nested"], "text"],
+    42
+];
+
+let comp1 = complexArray[0];    // 1
+let comp2 = complexArray[1];    // "string"
+let comp3 = complexArray[5];    // 42
+
+// 6. 数组修改边界情况
+let modifyArray = [10, 20, 30];
+modifyArray[0] = 100;  // 修改第一个元素
+modifyArray[2] = 300;  // 修改最后一个元素
+
+let mod1 = modifyArray[0];  // 100
+let mod2 = modifyArray[1];  // 20
+let mod3 = modifyArray[2];  // 300
+
+// 7. 字符串数组边界
+let stringEdges = ["", "a", "hello world", ""];
+let str1 = stringEdges[1];  // "a"
+let str2 = stringEdges[2];  // "hello world"
+
+// 8. 数值类型边界
+let numericEdges = [0, -1, 1, 999, -999];
+let num1 = numericEdges[0];  // 0
+let num2 = numericEdges[1];  // -1
+let num3 = numericEdges[4];  // -999
+
+// 计算验证结果
+let sum = single + first + middle + last;          // 42 + 1 + 5 + 10 = 58
+let nested = nest1 + nest2 + nest3;               // 1 + 6 + 7 = 14
+let complex = comp1 + comp3;                      // 1 + 42 = 43
+let modified = mod1 + mod2 + mod3;                // 100 + 20 + 300 = 420
+let numeric = num1 + num2 + num3;                 // 0 + (-1) + (-999) = -1000
+
+// 返回验证结果
+sum + nested + complex + modified + numeric;  // 58 + 14 + 43 + 420 + (-1000) = -465 

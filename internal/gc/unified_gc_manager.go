@@ -1,6 +1,7 @@
 package gc
 
 import (
+	"fmt"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -106,10 +107,16 @@ var DefaultUnifiedGCConfig = UnifiedGCConfig{
 	VerboseLogging:  false,
 }
 
-// NewUnifiedGCManager 创建统一GC管理器
+// NewUnifiedGCManager 创建统一GC管理器 - 使用新的统一分配器
 func NewUnifiedGCManager(allocator AQLAllocator, config *UnifiedGCConfig) *UnifiedGCManager {
 	if config == nil {
 		config = &DefaultUnifiedGCConfig
+	}
+
+	// 如果没有提供分配器，创建新的统一分配器
+	if allocator == nil {
+		fmt.Printf("DEBUG [UnifiedGCManager] 创建新的统一分配器\n")
+		allocator = NewAQLUnifiedAllocator(true) // 启用调试
 	}
 
 	// 创建RefCountGC
@@ -133,6 +140,8 @@ func NewUnifiedGCManager(allocator AQLAllocator, config *UnifiedGCConfig) *Unifi
 
 	// 启动GC工作线程
 	mgr.startWorkers()
+
+	fmt.Printf("DEBUG [UnifiedGCManager] GC管理器创建完成，使用分配器类型: %T\n", allocator)
 
 	return mgr
 }
@@ -238,21 +247,35 @@ func (mgr *UnifiedGCManager) shouldTriggerGC() bool {
 	freedBytes := atomic.LoadUint64(&mgr.stats.FreedBytes)
 	liveBytes := allocatedBytes - freedBytes
 
+	fmt.Printf("DEBUG [shouldTriggerGC] 内存检查: allocated=%d, freed=%d, live=%d, limit=%d\n",
+		allocatedBytes, freedBytes, liveBytes, mgr.config.MemoryPressureLimit)
+
 	if liveBytes > mgr.config.MemoryPressureLimit {
+		fmt.Printf("DEBUG [shouldTriggerGC] 触发GC: 内存压力过大\n")
 		return true
 	}
 
 	// 检查对象数量
 	trackedObjects := mgr.markSweepGC.GetTrackedObjectCount()
+	fmt.Printf("DEBUG [shouldTriggerGC] 对象数量检查: tracked=%d, limit=%d\n",
+		trackedObjects, mgr.config.ObjectCountLimit)
+
 	if trackedObjects > mgr.config.ObjectCountLimit {
+		fmt.Printf("DEBUG [shouldTriggerGC] 触发GC: 对象数量过多\n")
 		return true
 	}
 
 	// 检查时间间隔
-	if time.Since(mgr.lastFullGC) > mgr.config.FullGCInterval {
+	timeSinceLastGC := time.Since(mgr.lastFullGC)
+	fmt.Printf("DEBUG [shouldTriggerGC] 时间检查: since_last=%v, interval=%v\n",
+		timeSinceLastGC, mgr.config.FullGCInterval)
+
+	if timeSinceLastGC > mgr.config.FullGCInterval {
+		fmt.Printf("DEBUG [shouldTriggerGC] 触发GC: 时间间隔过长\n")
 		return true
 	}
 
+	fmt.Printf("DEBUG [shouldTriggerGC] 不触发GC\n")
 	return false
 }
 
@@ -482,4 +505,67 @@ func (mgr *UnifiedGCManager) GetGCGeneration() uint64 {
 	mgr.mutex.RLock()
 	defer mgr.mutex.RUnlock()
 	return mgr.gcGeneration
+}
+
+// Allocate 分配GC对象（统一入口）
+func (mgr *UnifiedGCManager) Allocate(size int, objType uint8) *GCObject {
+	fmt.Printf("DEBUG [UnifiedGCManager] Allocate被调用: size=%d, objType=%d\n", size, objType)
+
+	if !mgr.isEnabled {
+		fmt.Printf("DEBUG [UnifiedGCManager] GC管理器未启用\n")
+		return nil
+	}
+
+	// 通过底层分配器分配普通内存
+	obj := mgr.allocator.Allocate(uint32(size), ObjectType(objType))
+	if obj == nil {
+		fmt.Printf("DEBUG [UnifiedGCManager] 分配失败\n")
+		return nil
+	}
+
+	fmt.Printf("DEBUG [UnifiedGCManager] 分配成功: obj=%p\n", obj)
+
+	// 通知GC管理器有新对象分配
+	mgr.OnObjectAllocated(obj)
+
+	return obj
+}
+
+// AllocateIsolated 分配独立对象（避免内存复用）
+func (mgr *UnifiedGCManager) AllocateIsolated(size int, objType uint8) *GCObject {
+	fmt.Printf("DEBUG [UnifiedGCManager] AllocateIsolated被调用: size=%d, objType=%d\n", size, objType)
+
+	if !mgr.isEnabled {
+		fmt.Printf("DEBUG [UnifiedGCManager] GC管理器未启用\n")
+		return nil
+	}
+
+	// 通过底层分配器分配独立内存
+	obj := mgr.allocator.AllocateIsolated(uint32(size), ObjectType(objType))
+	if obj == nil {
+		fmt.Printf("DEBUG [UnifiedGCManager] 独立分配失败\n")
+		return nil
+	}
+
+	fmt.Printf("DEBUG [UnifiedGCManager] 独立分配成功: obj=%p\n", obj)
+
+	// 通知GC管理器有新对象分配
+	mgr.OnObjectAllocated(obj)
+
+	return obj
+}
+
+// Deallocate 释放GC对象（统一入口）
+func (mgr *UnifiedGCManager) Deallocate(obj *GCObject) {
+	if obj == nil {
+		return
+	}
+
+	fmt.Printf("DEBUG [UnifiedGCManager] Deallocate被调用: obj=%p, refCount=%d\n", obj, obj.Header.RefCount())
+
+	// 通知GC管理器对象即将被释放
+	mgr.OnObjectFreed(obj)
+
+	// 通过底层分配器释放内存
+	mgr.allocator.Deallocate(obj)
 }

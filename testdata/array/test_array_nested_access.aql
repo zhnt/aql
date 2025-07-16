@@ -1,0 +1,12 @@
+// 嵌套数组访问测试
+let innerArray = [1, 2, 3];
+let outerArray = [innerArray, [4, 5, 6]];
+
+// 测试一级访问
+let firstArray = outerArray[0];  // 应该是 [1, 2, 3]
+
+// 测试二级访问
+let element = firstArray[1];     // 应该是 2
+
+// 验证结果
+element; 

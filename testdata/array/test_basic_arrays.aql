@@ -1,0 +1,29 @@
+// 基础数组测试 - 简化版本
+
+// 简单数组创建
+let simpleArray = [1, 2, 3];
+let stringArray = ["a", "b", "c"];
+
+// 数组元素访问
+let firstNum = simpleArray[0];
+let secondNum = simpleArray[1];
+let thirdNum = simpleArray[2];
+
+// 数组元素修改
+simpleArray[0] = 10;
+simpleArray[1] = 20;
+simpleArray[2] = 30;
+
+// 字符串数组操作
+let firstStr = stringArray[0];
+stringArray[0] = "A";
+stringArray[1] = "B";
+stringArray[2] = "C";
+
+// 混合类型数组
+let mixedArray = [1, "string", 3];
+let numElement = mixedArray[0];
+
+// 返回简单的计算结果
+let result = simpleArray[0] + numElement;
+return result; 

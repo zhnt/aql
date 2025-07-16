@@ -1,0 +1,32 @@
+// 测试预分配容量数组功能
+let buffer = Array(5);
+buffer[0] = "item1";
+buffer[4] = "item5";
+
+
+// 创建矩阵的辅助函数（使用循环）
+function createMatrix(rows, cols, defaultValue) {
+    let matrix = Array(rows);
+    let i = 0;
+    
+    while (i < rows) {
+        matrix[i] = Array(cols, defaultValue);
+        i = i + 1;
+    }
+    
+    return matrix;
+}
+
+// 使用
+let gameBoard = createMatrix(8, 8, 0);     // 8x8棋盘，初始为0
+let scoreMatrix = createMatrix(5, 10, -1); // 5x10分数矩阵，初始为-1
+
+function createArray(nums) {
+    let ar = Array(nums,1)
+    return ar
+}
+
+let a = createArray(10)
+
+return gameBoard;
+//return a;

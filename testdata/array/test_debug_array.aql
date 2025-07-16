@@ -1,0 +1,7 @@
+// 调试数组访问
+let inner = [1, 2];
+let matrix = [inner, [3, 4]];
+
+// 测试直接访问
+let row = matrix[0];
+row; 

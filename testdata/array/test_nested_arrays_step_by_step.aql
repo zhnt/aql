@@ -1,0 +1,21 @@
+// 分步测试嵌套数组
+let arr1 = [1, 2, 3];
+let arr2 = [4, 5, 6];
+
+// 测试单独的数组
+let test1 = arr1[1];  // 应该是2
+let test2 = arr2[1];  // 应该是5
+
+// 创建包含这两个数组的数组
+let combined = [arr1, arr2];
+
+// 测试嵌套访问
+let inner1 = combined[0];  // 应该是arr1 = [1, 2, 3]
+let inner2 = combined[1];  // 应该是arr2 = [4, 5, 6]
+
+// 测试从内部数组获取值
+let val1 = inner1[1];  // 应该是2
+let val2 = inner2[1];  // 应该是5
+
+// 验证结果
+val1; 

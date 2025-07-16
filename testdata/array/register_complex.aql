@@ -1,0 +1,20 @@
+// 分析寄存器消耗 - 复杂版本
+
+// 这个版本会消耗更多寄存器
+let var1 = "string1";
+let var2 = "string2";
+let var3 = "string3";
+let var4 = "string4";
+let var5 = "string5";
+let var6 = "string6";
+let var7 = "string7";
+let var8 = "string8";
+let var9 = "string9";
+let var10 = "string10";
+
+let complex1 = var1 + var2 + var3;
+let complex2 = var4 + var5 + var6;
+let complex3 = var7 + var8 + var9;
+let final = complex1 + complex2 + complex3;
+
+return final; 

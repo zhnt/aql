@@ -1,0 +1,13 @@
+// 更简单的闭包测试
+function outer() {
+    let x = 42;
+    
+    function inner() {
+        return x;
+    }
+    
+    return inner;
+}
+
+let f = outer();
+f(); 

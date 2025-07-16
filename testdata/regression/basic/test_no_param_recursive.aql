@@ -1,0 +1,13 @@
+// 无参数的递归测试
+let counter = 3;
+
+function countdown() {
+    if (counter <= 0) {
+        return 0;
+    } else {
+        counter = counter - 1;
+        return countdown();
+    }
+}
+
+countdown(); 

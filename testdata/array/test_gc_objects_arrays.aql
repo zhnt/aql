@@ -1,0 +1,13 @@
+// 测试不同类型GC对象的数组
+// 1. 测试字符串数组
+let strings1 = ["hello", "world"];
+let strings2 = ["foo", "bar"];
+
+// 测试字符串数组的值
+let str1 = strings1[0];  // 应该是"hello"
+let str2 = strings1[1];  // 应该是"world"
+let str3 = strings2[0];  // 应该是"foo"
+let str4 = strings2[1];  // 应该是"bar"
+
+// 验证第一个字符串数组的第一个元素
+str1; 

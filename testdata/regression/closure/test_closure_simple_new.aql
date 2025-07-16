@@ -1,0 +1,10 @@
+// 简单的闭包测试 - 验证变量捕获功能
+function createAdder(x) {
+    function addToX(y) {
+        return x + y;
+    }
+    return addToX;
+}
+
+let adder = createAdder(5);
+adder(3);  // 应该返回 8 

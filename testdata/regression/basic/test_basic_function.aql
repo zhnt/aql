@@ -1,0 +1,14 @@
+// 测试基础函数调用
+function add(a, b) {
+    return a + b;
+}
+
+function greet(name) {
+    return "Hello, " + name;
+}
+
+// 测试双参数函数
+add(3, 5);
+
+// 测试单参数函数  
+greet("AQL"); 

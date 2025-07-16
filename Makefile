@@ -8,6 +8,7 @@ MAIN_PATH = cmd/aql/main.go
 BIN_DIR = bin
 BUILD_DIR = build
 DIST_DIR = dist
+TESTDATA_DIR = testdata
 
 # Go相关变量
 GO = go
@@ -16,6 +17,12 @@ GOTEST = go test
 GOBUILD = go build
 GOCLEAN = go clean
 GOMOD = go mod
+
+# 回归测试相关变量
+REGRESSION_SCRIPTS_DIR = $(TESTDATA_DIR)/regression/scripts
+FAST_REGRESSION_SCRIPT = $(REGRESSION_SCRIPTS_DIR)/test_regression_fast.sh
+FULL_REGRESSION_SCRIPT = $(REGRESSION_SCRIPTS_DIR)/test_regression_full.sh
+WATCH_REGRESSION_SCRIPT = $(REGRESSION_SCRIPTS_DIR)/test_regression_watch.sh
 
 # 构建标志
 LDFLAGS = -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(shell date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -45,6 +52,102 @@ test-coverage:
 	$(GOTEST) -v -coverprofile=coverage.out ./...
 	$(GO) tool cover -html=coverage.out -o coverage.html
 	@echo "📈 覆盖率报告已生成: coverage.html"
+
+# 快速回归测试
+.PHONY: test-regression-fast
+test-regression-fast: build-fast
+	@echo "🚀 运行快速回归测试..."
+	@if [ -f "$(FAST_REGRESSION_SCRIPT)" ]; then \
+		chmod +x "$(FAST_REGRESSION_SCRIPT)"; \
+		bash "$(FAST_REGRESSION_SCRIPT)"; \
+	else \
+		echo "❌ 快速回归测试脚本不存在: $(FAST_REGRESSION_SCRIPT)"; \
+		exit 1; \
+	fi
+
+# 完整回归测试
+.PHONY: test-regression-full
+test-regression-full: build
+	@echo "🚀 运行完整回归测试..."
+	@if [ -f "$(FULL_REGRESSION_SCRIPT)" ]; then \
+		chmod +x "$(FULL_REGRESSION_SCRIPT)"; \
+		bash "$(FULL_REGRESSION_SCRIPT)"; \
+	else \
+		echo "❌ 完整回归测试脚本不存在: $(FULL_REGRESSION_SCRIPT)"; \
+		exit 1; \
+	fi
+
+# 监控回归测试
+.PHONY: test-regression-watch
+test-regression-watch: build-fast
+	@echo "👁️  启动监控回归测试..."
+	@if [ -f "$(WATCH_REGRESSION_SCRIPT)" ]; then \
+		chmod +x "$(WATCH_REGRESSION_SCRIPT)"; \
+		bash "$(WATCH_REGRESSION_SCRIPT)"; \
+	else \
+		echo "❌ 监控回归测试脚本不存在: $(WATCH_REGRESSION_SCRIPT)"; \
+		exit 1; \
+	fi
+
+# 监控回归测试（完整模式）
+.PHONY: test-regression-watch-full
+test-regression-watch-full: build
+	@echo "👁️  启动监控回归测试（完整模式）..."
+	@if [ -f "$(WATCH_REGRESSION_SCRIPT)" ]; then \
+		chmod +x "$(WATCH_REGRESSION_SCRIPT)"; \
+		bash "$(WATCH_REGRESSION_SCRIPT)" -m full; \
+	else \
+		echo "❌ 监控回归测试脚本不存在: $(WATCH_REGRESSION_SCRIPT)"; \
+		exit 1; \
+	fi
+
+# 压力测试
+.PHONY: test-regression-stress
+test-regression-stress: build
+	@echo "⚡ 运行压力测试..."
+	@echo "🔄 运行100次快速回归测试..."
+	@for i in {1..100}; do \
+		echo "第$$i次测试..."; \
+		if ! make test-regression-fast; then \
+			echo "❌ 压力测试在第$$i次失败"; \
+			exit 1; \
+		fi; \
+	done
+	@echo "✅ 压力测试通过（100次测试）"
+
+# 回归测试报告
+.PHONY: test-regression-report
+test-regression-report: test-regression-full
+	@echo "📋 生成回归测试报告..."
+	@if [ -f "test_report.txt" ]; then \
+		cat test_report.txt; \
+	else \
+		echo "⚠️  测试报告文件不存在"; \
+	fi
+
+# 检查测试目录结构
+.PHONY: test-check-structure
+test-check-structure:
+	@echo "🔍 检查测试目录结构..."
+	@if [ -d "$(TESTDATA_DIR)" ]; then \
+		echo "✅ 测试数据目录存在: $(TESTDATA_DIR)"; \
+		tree $(TESTDATA_DIR) || ls -la $(TESTDATA_DIR); \
+	else \
+		echo "❌ 测试数据目录不存在: $(TESTDATA_DIR)"; \
+		exit 1; \
+	fi
+
+# 设置测试脚本权限
+.PHONY: test-setup
+test-setup:
+	@echo "🔧 设置测试脚本权限..."
+	@if [ -d "$(REGRESSION_SCRIPTS_DIR)" ]; then \
+		chmod +x $(REGRESSION_SCRIPTS_DIR)/*.sh; \
+		echo "✅ 测试脚本权限设置完成"; \
+	else \
+		echo "❌ 回归测试脚本目录不存在: $(REGRESSION_SCRIPTS_DIR)"; \
+		exit 1; \
+	fi
 
 # 构建主程序
 .PHONY: build
@@ -160,7 +263,7 @@ clean:
 	rm -rf $(BIN_DIR)
 	rm -rf $(DIST_DIR)
 	rm -rf $(BUILD_DIR)
-	rm -f coverage.out coverage.html
+	rm -f coverage.out coverage.html test_report.txt
 	@echo "✅ 清理完成"
 
 # 深度清理(包括go mod cache)
@@ -216,6 +319,7 @@ info:
 	@echo "  Go版本:   $(shell $(GO) version)"
 	@echo "  项目路径: $(PWD)"
 	@echo "  主文件:   $(MAIN_PATH)"
+	@echo "  测试目录: $(TESTDATA_DIR)"
 	@echo ""
 	@echo "📂 目录结构:"
 	@tree -I 'bin|dist|build|.git' -L 2 || ls -la
@@ -233,9 +337,21 @@ help:
 	@echo "  make package      - 创建发布包"
 	@echo ""
 	@echo "🧪 测试相关:"
-	@echo "  make test         - 运行测试"
+	@echo "  make test         - 运行Go单元测试"
 	@echo "  make test-coverage- 运行测试并生成覆盖率"
 	@echo "  make bench        - 运行基准测试"
+	@echo ""
+	@echo "🔄 回归测试:"
+	@echo "  make test-regression-fast   - 快速回归测试（< 30秒）"
+	@echo "  make test-regression-full   - 完整回归测试（< 5分钟）"
+	@echo "  make test-regression-watch  - 监控回归测试（自动）"
+	@echo "  make test-regression-watch-full - 监控回归测试（完整模式）"
+	@echo "  make test-regression-stress - 压力测试（100次）"
+	@echo "  make test-regression-report - 生成测试报告"
+	@echo ""
+	@echo "🔧 测试工具:"
+	@echo "  make test-setup     - 设置测试脚本权限"
+	@echo "  make test-check-structure - 检查测试目录结构"
 	@echo ""
 	@echo "🔧 开发工具:"
 	@echo "  make run          - 运行程序"
@@ -257,6 +373,11 @@ help:
 	@echo "  make docs         - 生成文档"
 	@echo "  make info         - 项目信息"
 	@echo "  make help         - 显示此帮助"
+	@echo ""
+	@echo "💡 开发工作流建议:"
+	@echo "  1. 开发时：make test-regression-watch"
+	@echo "  2. 提交前：make test-regression-fast"
+	@echo "  3. 发布前：make test-regression-full"
 
 # 默认显示帮助
 .DEFAULT_GOAL := help 

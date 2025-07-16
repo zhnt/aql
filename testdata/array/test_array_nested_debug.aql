@@ -1,0 +1,12 @@
+// 调试嵌套数组访问
+let innerArray = [1, 2, 3];
+let outerArray = [innerArray, [4, 5, 6]];
+
+// 分步调试
+let step1 = outerArray[0];  // 应该是 [1, 2, 3]
+let step2 = step1[0];       // 应该是 1  
+let step3 = step1[1];       // 应该是 2
+let step4 = step1[2];       // 应该是 3
+
+// 验证step3 (应该是2)
+step3; 

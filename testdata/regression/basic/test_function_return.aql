@@ -1,0 +1,14 @@
+// 测试函数返回函数（无变量捕获）
+function createAdder() {
+    function addFive(x) {
+        return x + 5;
+    }
+    
+    return addFive;  // 返回函数本身
+}
+
+// 获取函数
+let adder = createAdder();
+
+// 调用返回的函数
+adder(10); 

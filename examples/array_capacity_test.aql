@@ -1,0 +1,36 @@
+// AQL 数组容量预分配测试
+
+// 测试1: 基本容量分配
+let buffer = Array(1000);
+print("创建容量为1000的数组:", buffer);
+
+// 测试2: 带默认值的容量分配
+let matrix = Array(100, 0);
+print("创建容量为100，默认值为0的数组:", matrix);
+
+// 测试3: 传统数组字面量（仍然支持）
+let traditional = [1, 2, 3, 4, 5];
+print("传统数组字面量:", traditional);
+
+// 测试4: 性能对比 - 预分配vs动态扩容
+let preAllocated = Array(1000);
+let dynamic = [];
+
+// 预分配数组直接设置
+for (let i = 0; i < 1000; i++) {
+    preAllocated[i] = "item_" + i;
+}
+
+// 动态数组需要扩容
+for (let i = 0; i < 1000; i++) {
+    dynamic[i] = "item_" + i;
+}
+
+print("预分配数组完成");
+print("动态数组完成");
+
+// 测试5: 验证容量优势
+let sprites = Array(10000, "empty");
+print("创建10000个精灵槽位，避免扩容开销");
+
+return "数组容量测试完成"; 

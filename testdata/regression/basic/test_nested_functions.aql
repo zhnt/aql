@@ -1,0 +1,26 @@
+// 测试嵌套函数和复杂调用
+function outer() {
+    function inner(x) {
+        return x * 2;
+    }
+    
+    return inner(5);  // 直接调用内部函数
+}
+
+function calculate(a, b) {
+    function multiply(x, y) {
+        return x * y;
+    }
+    
+    function add(x, y) {
+        return x + y;
+    }
+    
+    return add(multiply(a, 2), multiply(b, 3));
+}
+
+// 测试简单嵌套：应该返回10
+outer();
+
+// 测试复杂计算：calculate(2, 3) = add(4, 9) = 13
+calculate(2, 3); 

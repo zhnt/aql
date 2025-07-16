@@ -1,0 +1,7 @@
+// 测试参数访问
+function getFirst(a, b) {
+    // 先测试第一个参数
+    return a;
+}
+
+getFirst(100, 200); 

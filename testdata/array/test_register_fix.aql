@@ -1,0 +1,37 @@
+// 测试寄存器修复效果
+// 创建许多临时变量来测试寄存器使用
+
+// 基础测试：创建100个局部变量
+let v1 = "var1";
+let v2 = "var2";
+let v3 = "var3";
+let v4 = "var4";
+let v5 = "var5";
+let v6 = "var6";
+let v7 = "var7";
+let v8 = "var8";
+let v9 = "var9";
+let v10 = "var10";
+
+// 数组测试：创建较多数组
+let arr1 = [1, 2, 3];
+let arr2 = [4, 5, 6];
+let arr3 = [7, 8, 9];
+let arr4 = [10, 11, 12];
+let arr5 = [13, 14, 15];
+
+// 复杂表达式测试：创建大量临时值
+let result1 = arr1[0] + arr2[1] + arr3[2];
+let result2 = arr2[0] + arr3[1] + arr4[2];
+let result3 = arr3[0] + arr4[1] + arr5[2];
+
+// 嵌套数组测试（适度）
+let nested1 = [arr1, arr2];
+let nested2 = [arr3, arr4];
+let nested3 = [arr5, nested1];
+
+// 混合运算
+let final = result1 + result2 + result3;
+
+// 返回结果
+return final; 

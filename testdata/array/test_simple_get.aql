@@ -1,0 +1,9 @@
+// 测试简单的数组get
+let matrix = [
+    [1, 2],
+    [3, 4]
+];
+
+// 先测试一级访问
+let row = matrix[0];
+row; 

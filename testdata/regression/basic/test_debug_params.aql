@@ -1,0 +1,6 @@
+// 调试参数传递
+function test(x) {
+    return 42; // 先返回常量，不依赖参数
+}
+
+test(100); 

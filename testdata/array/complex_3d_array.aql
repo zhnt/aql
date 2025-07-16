@@ -1,0 +1,174 @@
+// 复杂三维数组测试
+
+// 创建3x3x3的数字立方体
+let cube = [
+    [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9]
+    ],
+    [
+        [10, 11, 12],
+        [13, 14, 15],
+        [16, 17, 18]
+    ],
+    [
+        [19, 20, 21],
+        [22, 23, 24],
+        [25, 26, 27]
+    ]
+];
+
+// 创建2x2x4的字符串立方体
+let stringCube = [
+    [
+        ["A00", "A01", "A02", "A03"],
+        ["A10", "A11", "A12", "A13"]
+    ],
+    [
+        ["B00", "B01", "B02", "B03"],
+        ["B10", "B11", "B12", "B13"]
+    ]
+];
+
+// 创建混合类型的三维数组
+let mixedCube = [
+    [
+        [1, "hello", true],
+        [2, "world", false]
+    ],
+    [
+        ["test", 42, 3.14],
+        [100, "end", "done"]
+    ]
+];
+
+// 访问三维数组元素
+let element000 = cube[0][0][0];         // 1
+let element111 = cube[1][1][1];         // 14
+let element222 = cube[2][2][2];         // 27
+let element012 = cube[0][1][2];         // 6
+let element120 = cube[1][2][0];         // 16
+
+// 访问字符串立方体元素
+let strElement000 = stringCube[0][0][0];    // "A00"
+let strElement113 = stringCube[1][1][3];    // "B13"
+let strElement101 = stringCube[1][0][1];    // "B01"
+
+// 访问混合类型立方体元素
+let mixedNum = mixedCube[0][0][0];          // 1
+let mixedStr = mixedCube[0][0][1];          // "hello"
+let mixedBool = mixedCube[0][0][2];         // true
+let mixedFloat = mixedCube[1][0][2];        // 3.14
+
+// 修改三维数组元素
+cube[0][0][0] = 999;
+cube[1][1][1] = 888;
+cube[2][2][2] = 777;
+stringCube[0][0][0] = "MODIFIED_A00";
+stringCube[1][1][3] = "MODIFIED_B13";
+mixedCube[0][0][1] = "CHANGED_HELLO";
+
+// 获取修改后的元素
+let modifiedCube1 = cube[0][0][0];          // 999
+let modifiedCube2 = cube[1][1][1];          // 888
+let modifiedCube3 = cube[2][2][2];          // 777
+let modifiedStr1 = stringCube[0][0][0];     // "MODIFIED_A00"
+let modifiedStr2 = stringCube[1][1][3];     // "MODIFIED_B13"
+let modifiedMixed = mixedCube[0][0][1];     // "CHANGED_HELLO"
+
+// 创建不规则三维数组
+let irregularCube = [
+    [
+        [1, 2],
+        [3, 4, 5]
+    ],
+    [
+        [6, 7, 8, 9],
+        [10]
+    ],
+    [
+        [11, 12, 13],
+        [14, 15],
+        [16, 17, 18, 19, 20]
+    ]
+];
+
+// 访问不规则三维数组
+let irregular1 = irregularCube[0][0][1];    // 2
+let irregular2 = irregularCube[0][1][2];    // 5
+let irregular3 = irregularCube[1][0][3];    // 9
+let irregular4 = irregularCube[1][1][0];    // 10
+let irregular5 = irregularCube[2][2][4];    // 20
+
+// 动态创建三维数组
+let dynamicCube = [];
+dynamicCube[0] = [
+    ["D000", "D001", "D002"],
+    ["D010", "D011", "D012"]
+];
+dynamicCube[1] = [
+    ["D100", "D101", "D102"],
+    ["D110", "D111", "D112"]
+];
+
+// 访问动态创建的立方体
+let dynamic000 = dynamicCube[0][0][0];      // "D000"
+let dynamic111 = dynamicCube[1][1][1];      // "D111"
+let dynamic012 = dynamicCube[0][1][2];      // "D012"
+
+// 修改动态立方体
+dynamicCube[0][0][0] = "UPDATED_D000";
+dynamicCube[1][1][1] = "UPDATED_D111";
+dynamicCube[0][1][2] = "UPDATED_D012";
+
+// 获取修改后的动态元素
+let updatedDynamic1 = dynamicCube[0][0][0];  // "UPDATED_D000"
+let updatedDynamic2 = dynamicCube[1][1][1];  // "UPDATED_D111"
+let updatedDynamic3 = dynamicCube[0][1][2];  // "UPDATED_D012"
+
+// 创建四维数组（嵌套更深）
+let hyperCube = [
+    [
+        [
+            [1, 2],
+            [3, 4]
+        ],
+        [
+            [5, 6],
+            [7, 8]
+        ]
+    ],
+    [
+        [
+            [9, 10],
+            [11, 12]
+        ],
+        [
+            [13, 14],
+            [15, 16]
+        ]
+    ]
+];
+
+// 访问四维数组元素
+let hyper0000 = hyperCube[0][0][0][0];      // 1
+let hyper0111 = hyperCube[0][1][1][1];      // 8
+let hyper1010 = hyperCube[1][0][1][0];      // 11
+let hyper1111 = hyperCube[1][1][1][1];      // 16
+
+// 修改四维数组元素
+hyperCube[0][0][0][0] = 1000;
+hyperCube[1][1][1][1] = 2000;
+
+// 获取修改后的四维元素
+let modifiedHyper1 = hyperCube[0][0][0][0];  // 1000
+let modifiedHyper2 = hyperCube[1][1][1][1];  // 2000
+
+// 计算一些结果用于返回
+let sum3D = element000 + element111 + element222;
+let sumModified = modifiedCube1 + modifiedCube2 + modifiedCube3;
+let sum4D = hyper0000 + hyper1111;
+let finalResult = sum3D + sumModified + sum4D;
+
+return finalResult; 

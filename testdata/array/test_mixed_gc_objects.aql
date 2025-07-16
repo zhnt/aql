@@ -1,0 +1,27 @@
+// 测试混合GC对象
+// 1. 测试基本数组
+let arr1 = [1, 2];
+let arr2 = [3, 4];
+
+// 2. 测试字符串数组
+let str1 = ["a", "b"];
+let str2 = ["c", "d"];
+
+// 3. 测试混合类型数组
+let mix1 = [1, "hello"];
+let mix2 = [2, "world"];
+
+// 验证基本数组
+let val1 = arr1[0];  // 应该是1
+let val2 = arr2[0];  // 应该是3
+
+// 验证字符串数组
+let str_val1 = str1[0];  // 应该是"a"
+let str_val2 = str2[0];  // 应该是"c"
+
+// 验证混合数组
+let mix_val1 = mix1[0];  // 应该是1
+let mix_val2 = mix2[0];  // 应该是2
+
+// 返回验证结果
+val1; 

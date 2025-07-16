@@ -1,0 +1,6 @@
+// 不带if的递归测试
+function test(n) {
+    return test(n);  // 直接递归，无条件
+}
+
+test(1); 

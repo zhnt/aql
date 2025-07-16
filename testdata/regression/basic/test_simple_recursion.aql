@@ -1,0 +1,8 @@
+// 简单的递归测试
+function countdown(n) {
+    // 先测试参数是否正确传递
+    n;
+}
+
+// 测试参数传递
+countdown(5); 

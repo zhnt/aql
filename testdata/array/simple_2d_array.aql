@@ -1,0 +1,39 @@
+// 简化的二维数组测试
+
+// 创建一个简单的3x3矩阵
+let matrix = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+];
+
+// 访问二维数组元素
+let element00 = matrix[0][0];     // 1
+let element11 = matrix[1][1];     // 5
+let element22 = matrix[2][2];     // 9
+
+// 修改二维数组元素
+matrix[0][0] = 10;
+matrix[1][1] = 50;
+matrix[2][2] = 90;
+
+// 获取修改后的元素
+let modified00 = matrix[0][0];    // 10
+let modified11 = matrix[1][1];    // 50
+let modified22 = matrix[2][2];    // 90
+
+// 创建字符串矩阵
+let stringMatrix = [
+    ["A", "B"],
+    ["C", "D"]
+];
+
+// 访问字符串矩阵
+let strA = stringMatrix[0][0];    // "A"
+let strD = stringMatrix[1][1];    // "D"
+
+// 计算结果
+let sum = element00 + element11 + element22;
+let result = sum + 100;
+
+return result; 

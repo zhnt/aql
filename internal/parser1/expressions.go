@@ -250,6 +250,32 @@ func (p *Parser) parseArrayLiteral() Expression {
 	return array
 }
 
+// parseArrayConstructor 解析数组构造器 Array(capacity) 或 Array(capacity, defaultValue)
+func (p *Parser) parseArrayConstructor() Expression {
+	arrayConstructor := &ArrayConstructor{Token: p.curToken}
+
+	if !p.expectPeek(lexer1.LPAREN) {
+		return nil
+	}
+
+	// 解析容量参数
+	p.nextToken()
+	arrayConstructor.Capacity = p.parseExpression(LOWEST)
+
+	// 检查是否有默认值参数
+	if p.peekTokenIs(lexer1.COMMA) {
+		p.nextToken() // 跳过逗号
+		p.nextToken() // 移到默认值
+		arrayConstructor.DefaultValue = p.parseExpression(LOWEST)
+	}
+
+	if !p.expectPeek(lexer1.RPAREN) {
+		return nil
+	}
+
+	return arrayConstructor
+}
+
 // parseIndexExpression 解析索引表达式
 func (p *Parser) parseIndexExpression(left Expression) Expression {
 	exp := &IndexExpression{Token: p.curToken, Left: left}
@@ -371,22 +397,34 @@ func (p *Parser) parsePipeExpression(left Expression) Expression {
 
 // parseAssignmentExpression 解析赋值表达式 (中缀解析函数)
 func (p *Parser) parseAssignmentExpression(left Expression) Expression {
-	// 左侧必须是标识符
-	ident, ok := left.(*Identifier)
-	if !ok {
+	// 检查左侧是否为有效的赋值目标
+	switch leftExpr := left.(type) {
+	case *Identifier:
+		// 简单变量赋值: x = value
+		exp := &AssignmentStatement{
+			Token: p.curToken, // = token
+			Name:  leftExpr,
+		}
+
+		p.nextToken()
+		exp.Value = p.parseExpression(LOWEST)
+
+		return exp
+	case *IndexExpression:
+		// 索引赋值: arr[index] = value
+		exp := &IndexAssignmentStatement{
+			Token: p.curToken, // = token
+			Left:  leftExpr,
+		}
+
+		p.nextToken()
+		exp.Value = p.parseExpression(LOWEST)
+
+		return exp
+	default:
 		p.errors = append(p.errors, "invalid assignment target")
 		return nil
 	}
-
-	exp := &AssignmentStatement{
-		Token: p.curToken, // = token
-		Name:  ident,
-	}
-
-	p.nextToken()
-	exp.Value = p.parseExpression(LOWEST)
-
-	return exp
 }
 
 // parseCommaExpression 已移除 - AQL不再支持逗号运算符
