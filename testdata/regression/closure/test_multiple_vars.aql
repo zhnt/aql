@@ -1,0 +1,36 @@
+// 测试3：一个外部函数，两个变量，3-4个内部函数
+function test3_multipleVarsAndFunctions() {
+    let var1 = 10;
+    let var2 = 20;
+    
+    function func1() {
+        return var1;
+    }
+    
+    function func2() {
+        return var2;
+    }
+    
+    function func3() {
+        return var1 + var2;
+    }
+    
+    function func4() {
+        return var1 * var2;
+    }
+    
+    // 测试所有函数
+    function tester() {
+        let result1 = func1();  // 10
+        let result2 = func2();  // 20
+        let result3 = func3();  // 30
+        let result4 = func4();  // 200
+        return result1 + result2 + result3 + result4;  // 10+20+30+200 = 260
+    }
+    
+    return tester;
+}
+
+// 执行测试
+let test3 = test3_multipleVarsAndFunctions();
+test3();  // 应该返回 260 

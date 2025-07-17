@@ -1,0 +1,21 @@
+// 测试闭包环境下的简单if-else
+
+function create_checker(threshold) {
+    function check(value) {
+        if (value > threshold) {
+            return value * 2;
+        } else {
+            return value + 10;
+        }
+    }
+    return check;
+}
+
+// 创建检查器
+let checker = create_checker(15);
+
+// 测试两种情况
+let result1 = checker(20);  // 应该返回40 (20 * 2)
+let result2 = checker(10);  // 应该返回20 (10 + 10)
+
+result1 + result2  // 应该返回60 

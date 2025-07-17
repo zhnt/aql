@@ -1,0 +1,15 @@
+// 测试有问题的版本：先修改再访问
+
+function test_modified_array_access() {
+    let arr = [10, 20, 30];
+    let value = 99;
+    let index = 1;
+    
+    // 先修改
+    arr[index] = value;
+    // 再访问（可能失败）
+    return arr[index];
+}
+
+// 测试
+test_modified_array_access();  // 应该返回 99，但可能会失败 

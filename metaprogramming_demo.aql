@@ -1,0 +1,290 @@
+// AQL元编程和eDSL技术演示
+
+// ==================== 1. 基础元编程 ====================
+
+// 1.1 装饰器模式 - 计时装饰器
+function timing(originalFunc) {
+    return function() {
+        let startTime = getCurrentTime()
+        let result = originalFunc()
+        let endTime = getCurrentTime()
+        println("执行时间: " + (endTime - startTime) + "ms")
+        return result
+    }
+}
+
+// 1.2 函数工厂 - 创建验证器
+function createValidator(type, rules) {
+    return function(value) {
+        switch(type) {
+            case "string":
+                return value.length >= rules.minLength && value.length <= rules.maxLength
+            case "number":
+                return value >= rules.min && value <= rules.max
+            case "email":
+                return value.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
+            default:
+                return false
+        }
+    }
+}
+
+// 使用函数工厂生成具体验证器
+let nameValidator = createValidator("string", {minLength: 2, maxLength: 50})
+let ageValidator = createValidator("number", {min: 0, max: 150})
+
+// ==================== 2. 高级元编程 ====================
+
+// 2.1 AI Agent装饰器
+function agentDecorator(originalFunc, config) {
+    return function(input) {
+        // 预处理
+        let processedInput = config.preprocessor ? config.preprocessor(input) : input
+        
+        // 调用原函数
+        let result = originalFunc(processedInput)
+        
+        // 后处理
+        let finalResult = config.postprocessor ? config.postprocessor(result) : result
+        
+        return finalResult
+    }
+}
+
+// 2.2 多Agent协同装饰器
+function multiAgentCollaboration(originalFunc, agents) {
+    return function(task) {
+        let results = []
+        
+        // 并行调用多个Agent
+        for (let i = 0; i < agents.length; i++) {
+            let agent = agents[i]
+            let agentResult = agent.process(task)
+            results.push(agentResult)
+        }
+        
+        // 合并结果
+        let mergedResult = mergeResults(results)
+        
+        // 调用原函数处理合并后的结果
+        return originalFunc(mergedResult)
+    }
+}
+
+// ==================== 3. eDSL实现 ====================
+
+// 3.1 查询构建器DSL
+function queryBuilder() {
+    let query = {
+        select: [],
+        from: "",
+        where: [],
+        orderBy: [],
+        limit: 0
+    }
+    
+    return {
+        select: function(fields) {
+            query.select = fields
+            return this
+        },
+        from: function(table) {
+            query.from = table
+            return this
+        },
+        where: function(condition) {
+            query.where.push(condition)
+            return this
+        },
+        orderBy: function(field) {
+            query.orderBy.push(field)
+            return this
+        },
+        limit: function(n) {
+            query.limit = n
+            return this
+        },
+        build: function() {
+            return buildSQL(query)
+        }
+    }
+}
+
+// 3.2 工作流DSL
+function defineWorkflow(steps) {
+    return {
+        steps: steps,
+        
+        execute: function(input) {
+            let result = input
+            
+            for (let i = 0; i < steps.length; i++) {
+                let step = steps[i]
+                result = step.action(result)
+                
+                // 检查条件
+                if (step.condition && !step.condition(result)) {
+                    break
+                }
+            }
+            
+            return result
+        }
+    }
+}
+
+// 3.3 AI Agent定义DSL
+function defineAgent(config) {
+    return {
+        name: config.name,
+        capabilities: config.capabilities,
+        model: config.model,
+        
+        // Agent行为定义
+        behavior: function(input) {
+            let processedInput = config.preprocessor ? config.preprocessor(input) : input
+            let response = callAI(processedInput, config.model)
+            let result = config.postprocessor ? config.postprocessor(response) : response
+            return result
+        },
+        
+        // Agent间通信
+        communicate: function(targetAgent, message) {
+            return targetAgent.receive(this, message)
+        },
+        
+        // 接收消息
+        receive: function(fromAgent, message) {
+            return config.messageHandler(fromAgent, message)
+        }
+    }
+}
+
+// ==================== 4. 使用示例 ====================
+
+// 4.1 使用装饰器
+let myFunction = timing(function() {
+    return 42 + 8
+})
+
+// 4.2 使用查询DSL
+let sql = queryBuilder()
+    .select(["name", "age"])
+    .from("users")
+    .where("age > 18")
+    .orderBy("name")
+    .limit(10)
+    .build()
+
+// 4.3 使用工作流DSL
+let aiWorkflow = defineWorkflow([
+    {
+        name: "data_validation",
+        action: function(input) {
+            return validateData(input)
+        },
+        condition: function(result) {
+            return result.isValid
+        }
+    },
+    {
+        name: "llm_processing",
+        action: function(input) {
+            return callLLM(input.data, "gpt-4")
+        }
+    },
+    {
+        name: "result_formatting",
+        action: function(input) {
+            return formatResult(input)
+        }
+    }
+])
+
+// 4.4 使用Agent DSL
+let dataAnalysisAgent = defineAgent({
+    name: "DataAnalyst",
+    capabilities: ["data_analysis", "visualization"],
+    model: "gpt-4",
+    
+    preprocessor: function(input) {
+        return {
+            task: "analyze",
+            data: input.data,
+            format: input.format || "json"
+        }
+    },
+    
+    postprocessor: function(response) {
+        return {
+            analysis: response.analysis,
+            charts: response.charts,
+            summary: response.summary
+        }
+    },
+    
+    messageHandler: function(fromAgent, message) {
+        if (message.type == "data_request") {
+            return this.behavior(message.data)
+        }
+        return null
+    }
+})
+
+// ==================== 5. 动态DSL生成 ====================
+
+// 5.1 DSL生成器
+function generateDSL(domain, rules) {
+    let dslFunctions = {}
+    
+    // 动态生成DSL函数
+    for (let i = 0; i < rules.length; i++) {
+        let rule = rules[i]
+        dslFunctions[rule.name] = function(input) {
+            return executeRule(rule, input)
+        }
+    }
+    
+    return dslFunctions
+}
+
+// 5.2 自适应DSL
+function adaptiveDSL(baseDSL) {
+    let usageStats = {}
+    let optimizations = {}
+    
+    return {
+        execute: function(command, input) {
+            // 记录使用统计
+            usageStats[command] = (usageStats[command] || 0) + 1
+            
+            // 检查是否需要优化
+            if (usageStats[command] > 100 && !optimizations[command]) {
+                optimizations[command] = optimizeCommand(command)
+            }
+            
+            // 使用优化版本或原版本
+            if (optimizations[command]) {
+                return optimizations[command](input)
+            } else {
+                return baseDSL[command](input)
+            }
+        },
+        
+        // 添加新的DSL命令
+        extend: function(name, handler) {
+            baseDSL[name] = handler
+            return this
+        }
+    }
+}
+
+// 执行示例
+let result = myFunction()
+println("Result: " + result)
+
+let workflowResult = aiWorkflow.execute({data: "test data", format: "json"})
+println("Workflow result: " + workflowResult)
+
+let agentResult = dataAnalysisAgent.behavior({data: [1, 2, 3, 4, 5], format: "array"})
+println("Agent result: " + agentResult) 

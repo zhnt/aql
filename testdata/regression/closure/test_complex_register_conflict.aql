@@ -1,0 +1,12 @@
+function test_complex_array_ops() {
+    let arr = [10, 20, 30, 40, 50];
+    
+    function modify_and_return(index, value) {
+        arr[index] = value;
+        return arr[index];
+    }
+    
+    return modify_and_return(2, 99);
+}
+
+test_complex_array_ops() 

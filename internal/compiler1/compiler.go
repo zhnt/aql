@@ -239,16 +239,38 @@ func (c *Compiler) compileExpressionStatement(stmt *parser1.ExpressionStatement)
 		return err
 	}
 
-	// 将结果移动到寄存器0，以便VM能正确返回结果
-	if reg != 0 {
-		c.emit(vm.OP_MOVE, 0, reg, 0) // R0 := R[reg]
+	// 找到一个安全的寄存器来存储结果，避免覆盖局部变量
+	resultReg := c.findSafeResultRegister()
+	if reg != resultReg {
+		c.emit(vm.OP_MOVE, resultReg, reg, 0) // R[resultReg] := R[reg]
 	}
 
-	// 表达式语句的结果被丢弃（但已经保存在R0中）
+	// 表达式语句的结果被丢弃（但已经保存在结果寄存器中）
 	c.emit(vm.OP_POP)
 	// 在表达式语句结束后重置寄存器分配器
 	c.resetRegisters()
 	return nil
+}
+
+// findSafeResultRegister 找到一个安全的寄存器来存储表达式结果
+func (c *Compiler) findSafeResultRegister() int {
+	// 找到所有局部变量的最大寄存器索引
+	maxLocalReg := -1
+	if c.symbolTable != nil {
+		for _, symbol := range c.symbolTable.store {
+			if symbol.Scope == LOCAL_SCOPE && symbol.Index > maxLocalReg {
+				maxLocalReg = symbol.Index
+			}
+		}
+	}
+
+	// 如果没有局部变量，使用寄存器0
+	if maxLocalReg == -1 {
+		return 0
+	}
+
+	// 否则使用局部变量后的第一个寄存器
+	return maxLocalReg + 1
 }
 
 // compileExpression 编译表达式，返回结果所在的寄存器号
@@ -511,7 +533,13 @@ func (c *Compiler) compilePrefixExpression(expr *parser1.PrefixExpression) (int,
 // 复杂表达式编译方法（临时简化实现）
 
 func (c *Compiler) compileIfExpression(expr *parser1.IfStatement) (int, error) {
-	// 编译条件表达式
+	// 分配结果寄存器
+	resultReg := c.allocateRegister()
+
+	// 存储所有跳转位置，用于后续回填
+	var jumpToEndPositions []int
+
+	// 编译主if条件
 	conditionReg, err := c.compileExpression(expr.Condition)
 	if err != nil {
 		return -1, err
@@ -520,11 +548,72 @@ func (c *Compiler) compileIfExpression(expr *parser1.IfStatement) (int, error) {
 	// 发射条件跳转指令：如果条件为假，跳过if块
 	jumpIfFalsePos := c.emit(vm.OP_JUMP_IF_FALSE, conditionReg, 9999)
 
-	// 分配结果寄存器
-	resultReg := c.allocateRegister()
+	// 编译if块（consequence）
+	err = c.compileIfBlock(expr.Consequence, resultReg)
+	if err != nil {
+		return -1, err
+	}
 
-	// 编译if块（consequence）- 只编译除了最后一个表达式语句之外的所有语句
-	ifStmts := expr.Consequence.Statements
+	// 发射无条件跳转指令：跳到最终结束位置
+	jumpToEndPos := c.emit(vm.OP_JUMP, 9999)
+	jumpToEndPositions = append(jumpToEndPositions, jumpToEndPos)
+
+	// 回填第一个条件跳转的目标地址
+	currentPos := len(c.currentInstructions())
+	jumpTarget := currentPos - jumpIfFalsePos
+	c.scopes[c.scopeIndex].instructions[jumpIfFalsePos].Bx = jumpTarget
+
+	// 编译所有elif分支
+	for _, elifBranch := range expr.ElifBranches {
+		// 编译elif条件
+		elifConditionReg, err := c.compileExpression(elifBranch.Condition)
+		if err != nil {
+			return -1, err
+		}
+
+		// 发射条件跳转指令：如果elif条件为假，跳过elif块
+		elifJumpIfFalsePos := c.emit(vm.OP_JUMP_IF_FALSE, elifConditionReg, 9999)
+
+		// 编译elif块
+		err = c.compileIfBlock(elifBranch.Consequence, resultReg)
+		if err != nil {
+			return -1, err
+		}
+
+		// 发射无条件跳转指令：跳到最终结束位置
+		jumpToEndPos := c.emit(vm.OP_JUMP, 9999)
+		jumpToEndPositions = append(jumpToEndPositions, jumpToEndPos)
+
+		// 回填elif条件跳转的目标地址
+		currentPos = len(c.currentInstructions())
+		jumpTarget = currentPos - elifJumpIfFalsePos
+		c.scopes[c.scopeIndex].instructions[elifJumpIfFalsePos].Bx = jumpTarget
+	}
+
+	// 如果有else块，编译它
+	if expr.Alternative != nil {
+		err = c.compileIfBlock(expr.Alternative, resultReg)
+		if err != nil {
+			return -1, err
+		}
+	} else {
+		// 没有else块，设置结果为nil
+		c.emit(vm.OP_LOADK, resultReg, c.addConstant(vm.NewNilValue()))
+	}
+
+	// 回填所有跳转到结束位置的指令
+	currentPos = len(c.currentInstructions())
+	for _, jumpPos := range jumpToEndPositions {
+		jumpTarget = currentPos - jumpPos
+		c.scopes[c.scopeIndex].instructions[jumpPos].Bx = jumpTarget
+	}
+
+	return resultReg, nil
+}
+
+// compileIfBlock 编译if/elif/else块的通用方法
+func (c *Compiler) compileIfBlock(block *parser1.BlockStatement, resultReg int) error {
+	ifStmts := block.Statements
 	for i, stmt := range ifStmts {
 		if i == len(ifStmts)-1 {
 			// 最后一个语句，特殊处理
@@ -532,14 +621,14 @@ func (c *Compiler) compileIfExpression(expr *parser1.IfStatement) (int, error) {
 				// 编译表达式并将结果存储到resultReg
 				reg, err := c.compileExpression(exprStmt.Expression)
 				if err != nil {
-					return -1, err
+					return err
 				}
 				c.emit(vm.OP_MOVE, resultReg, reg, 0)
 			} else {
 				// 非表达式语句，编译它并设置结果为nil
 				err := c.compileStatement(stmt)
 				if err != nil {
-					return -1, err
+					return err
 				}
 				c.emit(vm.OP_LOADK, resultReg, c.addConstant(vm.NewNilValue()))
 			}
@@ -547,71 +636,17 @@ func (c *Compiler) compileIfExpression(expr *parser1.IfStatement) (int, error) {
 			// 其他语句正常编译
 			err := c.compileStatement(stmt)
 			if err != nil {
-				return -1, err
+				return err
 			}
 		}
 	}
 
-	// 如果if块为空，设置结果为nil
+	// 如果块为空，设置结果为nil
 	if len(ifStmts) == 0 {
 		c.emit(vm.OP_LOADK, resultReg, c.addConstant(vm.NewNilValue()))
 	}
 
-	var jumpOverElsePos int = -1
-
-	// 如果有else块
-	if expr.Alternative != nil {
-		// 发射无条件跳转指令：跳过else块
-		jumpOverElsePos = c.emit(vm.OP_JUMP, 9999)
-	}
-
-	// 回填第一个跳转指令的目标地址
-	currentPos := len(c.currentInstructions())
-	jumpTarget := currentPos - jumpIfFalsePos
-	c.scopes[c.scopeIndex].instructions[jumpIfFalsePos].Bx = jumpTarget
-
-	// 如果有else块，编译它
-	if expr.Alternative != nil {
-		elseStmts := expr.Alternative.Statements
-		for i, stmt := range elseStmts {
-			if i == len(elseStmts)-1 {
-				// 最后一个语句，特殊处理
-				if exprStmt, ok := stmt.(*parser1.ExpressionStatement); ok {
-					// 编译表达式并将结果存储到resultReg
-					reg, err := c.compileExpression(exprStmt.Expression)
-					if err != nil {
-						return -1, err
-					}
-					c.emit(vm.OP_MOVE, resultReg, reg, 0)
-				} else {
-					// 非表达式语句，编译它并设置结果为nil
-					err := c.compileStatement(stmt)
-					if err != nil {
-						return -1, err
-					}
-					c.emit(vm.OP_LOADK, resultReg, c.addConstant(vm.NewNilValueGC()))
-				}
-			} else {
-				// 其他语句正常编译
-				err := c.compileStatement(stmt)
-				if err != nil {
-					return -1, err
-				}
-			}
-		}
-
-		// 如果else块为空，设置结果为nil
-		if len(elseStmts) == 0 {
-			c.emit(vm.OP_LOADK, resultReg, c.addConstant(vm.NewNilValueGC()))
-		}
-
-		// 回填跳过else块的跳转指令
-		currentPos = len(c.currentInstructions())
-		jumpTarget = currentPos - jumpOverElsePos
-		c.scopes[c.scopeIndex].instructions[jumpOverElsePos].Bx = jumpTarget
-	}
-
-	return resultReg, nil
+	return nil
 }
 
 // compileCommaExpression 已移除 - AQL不再支持逗号运算符
@@ -926,18 +961,37 @@ func (c *Compiler) compileFunctionLiteral(expr *parser1.FunctionLiteral) (int, e
 		funcReg := c.allocateRegister()
 		c.emit(vm.OP_LOADK, funcReg, constIndex)
 
-		// 加载自由变量到寄存器
+		// 加载自由变量到寄存器 - 修复后的版本
 		captureRegs := make([]int, numFreeVars)
 		for i, freeVar := range freeSymbols {
 			captureReg := c.allocateRegister()
 
-			// 根据原始符号的作用域生成正确的指令
-			if freeVar.Scope == GLOBAL_SCOPE {
-				c.emit(vm.OP_GET_GLOBAL, captureReg, freeVar.Index)
-			} else {
-				// 使用GET_LOCAL指令获取局部变量
-				c.emit(vm.OP_GET_LOCAL, captureReg, freeVar.Index)
+			// 关键修复：需要在当前作用域中正确地获取自由变量
+			// 自由变量对于当前作用域来说应该通过符号表解析来访问
+
+			// 在当前符号表中查找这个变量（应该被解析为FREE_SCOPE）
+			currentSymbol, ok := c.symbolTable.Resolve(freeVar.Name)
+			if !ok {
+				// 如果找不到，说明编译器逻辑有问题
+				return -1, &CompilationError{
+					Message: "free variable not found in current scope: " + freeVar.Name,
+				}
 			}
+
+			// 根据当前符号表中的解析结果生成指令
+			switch currentSymbol.Scope {
+			case GLOBAL_SCOPE:
+				c.emit(vm.OP_GET_GLOBAL, captureReg, currentSymbol.Index)
+			case FREE_SCOPE:
+				c.emit(vm.OP_GET_UPVALUE, captureReg, currentSymbol.Index)
+			case LOCAL_SCOPE:
+				c.emit(vm.OP_GET_LOCAL, captureReg, currentSymbol.Index)
+			default:
+				return -1, &CompilationError{
+					Message: "unsupported scope for free variable: " + string(currentSymbol.Scope),
+				}
+			}
+
 			captureRegs[i] = captureReg
 		}
 
@@ -1064,7 +1118,7 @@ func (c *Compiler) compileIndexExpression(expr *parser1.IndexExpression) (int, e
 		return -1, err
 	}
 
-	// 分配结果寄存器
+	// 分配结果寄存器，确保不会与之前的寄存器冲突
 	resultReg := c.allocateRegister()
 
 	// 发射数组获取指令: ARRAY_GET resultReg, leftReg, indexReg
@@ -1075,35 +1129,74 @@ func (c *Compiler) compileIndexExpression(expr *parser1.IndexExpression) (int, e
 
 // 辅助方法
 
-// allocateRegister 分配一个新寄存器（优化版）
+// allocateRegister 分配一个新寄存器（改进版，避免参数冲突）
 func (c *Compiler) allocateRegister() int {
 	// 首先尝试从空闲寄存器池中获取
 	if len(c.freeRegisters) > 0 {
-		reg := c.freeRegisters[len(c.freeRegisters)-1]
-		c.freeRegisters = c.freeRegisters[:len(c.freeRegisters)-1]
+		for i := len(c.freeRegisters) - 1; i >= 0; i-- {
+			reg := c.freeRegisters[i]
 
-		// 确保不会重用局部变量的寄存器
-		if c.symbolTable != nil {
-			// 检查当前符号表的局部变量是否与分配的寄存器冲突
-			for _, symbol := range c.symbolTable.store {
-				if symbol.Scope == LOCAL_SCOPE && symbol.Index == reg {
-					// 如果冲突，继续分配新的寄存器
-					goto allocateNew
-				}
+			// 确保不会重用局部变量或参数的寄存器
+			if c.isRegisterConflict(reg) {
+				continue
 			}
-		}
 
-		return reg
+			// 从空闲池中移除这个寄存器
+			c.freeRegisters = append(c.freeRegisters[:i], c.freeRegisters[i+1:]...)
+			return reg
+		}
 	}
 
-allocateNew:
-	// 如果没有空闲寄存器，或者空闲寄存器与局部变量冲突，分配新的
+	// 如果没有合适的空闲寄存器，分配新的
+	// 重要：从安全位置开始分配，避免与参数和局部变量冲突
+	minSafeReg := c.getMinimumSafeRegister()
+	if c.nextRegister < minSafeReg {
+		c.nextRegister = minSafeReg
+	}
+
 	reg := c.nextRegister
 	c.nextRegister++
 	if c.nextRegister > c.maxRegisters {
 		c.maxRegisters = c.nextRegister
 	}
 	return reg
+}
+
+// getMinimumSafeRegister 获取最小安全寄存器位置
+func (c *Compiler) getMinimumSafeRegister() int {
+	// 找到所有局部变量和参数的最大寄存器索引
+	maxReservedReg := -1
+
+	if c.symbolTable != nil {
+		for _, symbol := range c.symbolTable.store {
+			if symbol.Scope == LOCAL_SCOPE && symbol.Index > maxReservedReg {
+				maxReservedReg = symbol.Index
+			}
+		}
+	}
+
+	// 为了安全，临时寄存器从保留寄存器后的位置开始分配
+	return maxReservedReg + 1
+}
+
+// isRegisterConflict 检查寄存器是否与局部变量或参数冲突（改进版）
+func (c *Compiler) isRegisterConflict(reg int) bool {
+	if c.symbolTable == nil {
+		return false
+	}
+
+	// 检查所有符号表层次的局部变量
+	currentSymbolTable := c.symbolTable
+	for currentSymbolTable != nil {
+		for _, symbol := range currentSymbolTable.store {
+			if symbol.Scope == LOCAL_SCOPE && symbol.Index == reg {
+				return true
+			}
+		}
+		currentSymbolTable = currentSymbolTable.Outer
+	}
+
+	return false
 }
 
 // releaseRegister 释放寄存器（优化版）

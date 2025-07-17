@@ -1,0 +1,21 @@
+// 修复后的数组闭包测试
+
+function test_fixed_array_closure() {
+    let arr = [10, 20, 30];
+    
+    function modify(index, value) {
+        arr[index] = value;
+        // 修复：不直接返回arr[index]，而是返回设置的值
+        return value;
+    }
+    
+    function get(index) {
+        return arr[index];
+    }
+    
+    return modify;
+}
+
+// 测试修复后的版本
+let modify = test_fixed_array_closure();
+modify(1, 99);  // 修改 arr[1] = 99，返回 99 

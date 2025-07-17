@@ -1,0 +1,46 @@
+// 复杂数组闭包测试
+
+// 测试：数组修改和嵌套闭包
+function test_array_modification_and_nesting() {
+    let arr = [10, 20, 30];
+    
+    function createArrayProcessor() {
+        function modify(index, value) {
+            arr[index] = value;
+            return arr[index];
+        }
+        
+        function get(index) {
+            return arr[index];
+        }
+        
+        function sum() {
+            return arr[0] + arr[1] + arr[2];
+        }
+        
+        // 返回一个处理函数
+        return modify;
+    }
+    
+    return createArrayProcessor;
+}
+
+// 测试：嵌套闭包共享数组
+function test_nested_shared_array() {
+    let sharedArray = [100, 200, 300];
+    
+    function outer() {
+        function inner(index) {
+            return sharedArray[index];
+        }
+        return inner;
+    }
+    
+    return outer;
+}
+
+// 执行测试
+// 测试1：数组修改
+let processor = test_array_modification_and_nesting();
+let modify = processor();
+modify(1, 99);  // 修改 arr[1] = 99，应该返回 99 

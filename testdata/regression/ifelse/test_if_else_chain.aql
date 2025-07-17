@@ -1,0 +1,25 @@
+// 测试AQL的if-else链语法（不使用elif）
+
+function test_if_else_chain(x) {
+    if (x > 20) {
+        return 1;  // 大于20
+    } else {
+        if (x > 10) {
+            return 2;  // 大于10但小于等于20
+        } else {
+            if (x > 0) {
+                return 3;  // 大于0但小于等于10
+            } else {
+                return 4;  // 小于等于0
+            }
+        }
+    }
+}
+
+// 测试各种情况
+let result1 = test_if_else_chain(25);  // 应该返回1
+let result2 = test_if_else_chain(15);  // 应该返回2
+let result3 = test_if_else_chain(5);   // 应该返回3
+let result4 = test_if_else_chain(-1);  // 应该返回4
+
+result1 * 1000 + result2 * 100 + result3 * 10 + result4  // 应该返回1234 

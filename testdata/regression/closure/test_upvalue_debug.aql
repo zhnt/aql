@@ -1,0 +1,11 @@
+function test_upvalue_only() {
+    let arr = [10, 20, 30];
+    
+    function inner() {
+        return arr[1];
+    }
+    
+    return inner();
+}
+
+test_upvalue_only() 

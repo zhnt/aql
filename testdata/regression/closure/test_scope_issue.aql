@@ -1,0 +1,50 @@
+// 作用域问题的简单测试
+
+// 测试1：只有外层变量
+function test_outer_var_only() {
+    let outerVar = 50;
+    
+    function inner() {
+        return outerVar;
+    }
+    
+    return inner;
+}
+
+// 测试2：外层和内层都有变量，但内层函数只访问外层
+function test_outer_with_inner_var() {
+    let outerVar = 50;
+    
+    function level1() {
+        let level1Var = 20;  // 这个变量存在但不被使用
+        
+        function inner() {
+            return outerVar;  // 应该访问外层的50，而不是内层的20
+        }
+        
+        return inner;
+    }
+    
+    return level1;
+}
+
+// 测试3：验证内层变量访问
+function test_inner_var_access() {
+    let outerVar = 50;
+    
+    function level1() {
+        let level1Var = 20;
+        
+        function inner() {
+            return level1Var;  // 应该访问内层的20
+        }
+        
+        return inner;
+    }
+    
+    return level1;
+}
+
+// 执行测试1：只有外层变量
+let test1 = test_outer_var_only();
+test1();  // 应该返回50 

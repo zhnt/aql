@@ -310,6 +310,33 @@ func (p *Parser) parseIfStatement() *IfStatement {
 
 	stmt.Consequence = p.parseBlockStatement()
 
+	// 解析elif分支
+	stmt.ElifBranches = []*ElifBranch{}
+	for p.peekTokenIs(lexer1.ELIF) {
+		p.nextToken() // 移动到ELIF
+
+		elifBranch := &ElifBranch{Token: p.curToken}
+
+		if !p.expectPeek(lexer1.LPAREN) {
+			return nil
+		}
+
+		p.nextToken()
+		elifBranch.Condition = p.parseExpression(LOWEST)
+
+		if !p.expectPeek(lexer1.RPAREN) {
+			return nil
+		}
+
+		if !p.expectPeek(lexer1.LBRACE) {
+			return nil
+		}
+
+		elifBranch.Consequence = p.parseBlockStatement()
+		stmt.ElifBranches = append(stmt.ElifBranches, elifBranch)
+	}
+
+	// 解析else分支
 	if p.peekTokenIs(lexer1.ELSE) {
 		p.nextToken()
 

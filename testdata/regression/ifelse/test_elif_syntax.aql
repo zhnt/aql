@@ -1,0 +1,15 @@
+// 测试AQL是否支持elif语法
+
+function test_elif(x) {
+    if (x > 20) {
+        return "大于20";
+    } elif (x > 10) {
+        return "大于10但小于等于20";
+    } elif (x > 0) {
+        return "大于0但小于等于10";
+    } else {
+        return "小于等于0";
+    }
+}
+
+test_elif(25) 

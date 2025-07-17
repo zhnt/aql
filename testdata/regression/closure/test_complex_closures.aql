@@ -1,0 +1,83 @@
+// 复杂闭包测试用例
+
+// ==================== 测试1：一个外部函数，一个变量，2-3个内部函数 ====================
+function test1_multipleInnerFunctions() {
+    let sharedVar = 100;
+    
+    function inner1() {
+        return sharedVar;
+    }
+    
+    function inner2() {
+        return sharedVar + 10;
+    }
+    
+    function inner3() {
+        return sharedVar + 20;
+    }
+    
+    // 返回一个函数，该函数调用所有内部函数
+    function combiner() {
+        let result1 = inner1();
+        let result2 = inner2();
+        let result3 = inner3();
+        return result1 + result2 + result3;  // 100 + 110 + 120 = 330
+    }
+    
+    return combiner;
+}
+
+// ==================== 测试2：三层嵌套函数 ====================
+function test2_deepNesting() {
+    let outerVar = 50;
+    
+    function level1() {
+        let level1Var = 20;
+        
+        function level2() {
+            let level2Var = 5;
+            
+            function level3() {
+                // 访问所有三层的变量
+                return outerVar + level1Var + level2Var;  // 50 + 20 + 5 = 75
+            }
+            
+            return level3;
+        }
+        
+        return level2;
+    }
+    
+    return level1;
+}
+
+// ==================== 测试3：一个外部函数，两个变量，3-4个内部函数 ====================
+function test3_multipleVarsAndFunctions() {
+    let var1 = 10;
+    let var2 = 20;
+    
+    function func1() {
+        return var1;
+    }
+    
+    function func2() {
+        return var2;
+    }
+    
+    function func3() {
+        return var1 + var2;
+    }
+    
+    function func4() {
+        return var1 * var2;
+    }
+    
+    // 返回func3作为示例
+    return func3;
+}
+
+// ==================== 执行测试 ====================
+
+// 测试1：多个内部函数共享变量
+let test1Result = test1_multipleInnerFunctions();
+test1Result();  // 应该是 330 

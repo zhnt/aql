@@ -1,0 +1,30 @@
+// 复杂多参数闭包测试
+
+// 测试：多层嵌套多参数闭包
+function test_nested_multi_param() {
+    let outer = 5;
+    
+    function level1(a) {
+        let level1Var = a;
+        
+        function level2(b, c) {
+            let level2Var = b + c;
+            
+            function level3(d) {
+                return outer + level1Var + level2Var + d;
+            }
+            
+            return level3;
+        }
+        
+        return level2;
+    }
+    
+    return level1;
+}
+
+// 执行复杂多参数闭包测试
+let test = test_nested_multi_param();
+let level2 = test(10);        // level1Var = 10
+let level3 = level2(3, 7);    // level2Var = 3 + 7 = 10
+level3(2);                    // outer + level1Var + level2Var + d = 5 + 10 + 10 + 2 = 27 

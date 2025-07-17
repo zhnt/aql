@@ -1,0 +1,7 @@
+function simple_test() {
+    let arr = [1, 2, 3];
+    let index = 1;
+    return arr[index];
+}
+
+simple_test() 

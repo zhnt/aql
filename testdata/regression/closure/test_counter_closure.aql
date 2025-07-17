@@ -1,0 +1,47 @@
+// Counter闭包测试 - 测试状态修改和多个独立实例
+
+// 创建counter闭包工厂函数
+function createCounter(initialValue) {
+    let count = initialValue;
+    
+    function increment() {
+        count = count + 1;
+        return count;
+    }
+    
+    return increment;
+}
+
+// 创建3个不同的counter实例
+let counter1 = createCounter(0);   // 从0开始
+let counter2 = createCounter(10);  // 从10开始  
+let counter3 = createCounter(100); // 从100开始
+
+// 混合调用测试
+// 第一轮调用
+let result1_1 = counter1();  // 应该是 1
+let result2_1 = counter2();  // 应该是 11
+let result3_1 = counter3();  // 应该是 101
+
+// 第二轮调用
+let result1_2 = counter1();  // 应该是 2
+let result3_2 = counter3();  // 应该是 102
+let result2_2 = counter2();  // 应该是 12
+
+// 第三轮调用
+let result2_3 = counter2();  // 应该是 13
+let result1_3 = counter1();  // 应该是 3
+let result3_3 = counter3();  // 应该是 103
+
+// 第四轮调用
+let result3_4 = counter3();  // 应该是 104
+let result1_4 = counter1();  // 应该是 4
+let result2_4 = counter2();  // 应该是 14
+
+// 验证最终结果
+// counter1: 4 (从0开始，调用4次)
+// counter2: 14 (从10开始，调用4次)
+// counter3: 104 (从100开始，调用4次)
+
+// 输出最终验证
+result1_4;  // 应该是 4 

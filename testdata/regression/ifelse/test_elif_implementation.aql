@@ -1,0 +1,21 @@
+// 测试 elif 语法实现
+
+function test_elif_basic(x) {
+    if (x > 20) {
+        return 1;  // 大于20
+    } elif (x > 10) {
+        return 2;  // 大于10但小于等于20
+    } elif (x > 0) {
+        return 3;  // 大于0但小于等于10
+    } else {
+        return 4;  // 小于等于0
+    }
+}
+
+// 测试各种情况
+let result1 = test_elif_basic(25);  // 应该返回1
+let result2 = test_elif_basic(15);  // 应该返回2
+let result3 = test_elif_basic(5);   // 应该返回3
+let result4 = test_elif_basic(-1);  // 应该返回4
+
+result1 * 1000 + result2 * 100 + result3 * 10 + result4  // 应该返回1234 

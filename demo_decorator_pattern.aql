@@ -1,0 +1,44 @@
+// 当前AQL闭包系统实现装饰器模式的演示
+
+// 1. 基础的装饰器函数 - 记录函数调用
+function logDecorator(originalFunc) {
+    function wrapper() {
+        // 这里可以添加调用前的逻辑
+        let result = originalFunc();
+        // 这里可以添加调用后的逻辑
+        return result;
+    }
+    return wrapper;
+}
+
+// 2. 性能计时装饰器
+function timingDecorator(originalFunc) {
+    function timedWrapper() {
+        // 模拟计时开始
+        let result = originalFunc();
+        // 模拟计时结束并记录
+        return result;
+    }
+    return timedWrapper;
+}
+
+// 3. 缓存装饰器
+function cacheDecorator(originalFunc) {
+    let cache = {};  // 这里需要对象支持
+    
+    function cachedWrapper(key) {
+        // 如果有缓存，返回缓存结果
+        // 否则调用原函数并缓存结果
+        return originalFunc(key);
+    }
+    return cachedWrapper;
+}
+
+// 4. 基础函数
+function greet() {
+    return "Hello, World!";
+}
+
+// 5. 手动应用装饰器
+let decoratedGreet = logDecorator(greet);
+decoratedGreet(); 

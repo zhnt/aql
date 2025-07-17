@@ -1,0 +1,21 @@
+// 测试2：外层和内层都有变量，但内层函数只访问外层
+function test_outer_with_inner_var() {
+    let outerVar = 50;
+    
+    function level1() {
+        let level1Var = 20;  // 这个变量存在但不被使用
+        
+        function inner() {
+            return outerVar;  // 应该访问外层的50，而不是内层的20
+        }
+        
+        return inner;
+    }
+    
+    return level1;
+}
+
+// 执行测试2
+let test2 = test_outer_with_inner_var();
+let test2_inner = test2();
+test2_inner();  // 应该返回50，而不是20 

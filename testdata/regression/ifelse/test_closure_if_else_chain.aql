@@ -1,0 +1,31 @@
+// 测试闭包环境下的链式if-else（嵌套闭包）
+
+function create_complex_classifier(low, medium, high) {
+    function classify(value) {
+        if (value > high) {
+            return 1;  // 高级
+        } else {
+            if (value > medium) {
+                return 2;  // 中级
+            } else {
+                if (value > low) {
+                    return 3;  // 低级
+                } else {
+                    return 4;  // 最低级
+                }
+            }
+        }
+    }
+    return classify;
+}
+
+// 创建分类器：low=10, medium=50, high=100
+let classifier = create_complex_classifier(10, 50, 100);
+
+// 测试各种情况
+let result1 = classifier(150);  // 应该返回1（高级）
+let result2 = classifier(75);   // 应该返回2（中级）
+let result3 = classifier(25);   // 应该返回3（低级）
+let result4 = classifier(5);    // 应该返回4（最低级）
+
+result1 * 1000 + result2 * 100 + result3 * 10 + result4  // 应该返回1234 

@@ -1,0 +1,29 @@
+// 测试2：三层嵌套函数
+function test2_deepNesting() {
+    let outerVar = 50;
+    
+    function level1() {
+        let level1Var = 20;
+        
+        function level2() {
+            let level2Var = 5;
+            
+            function level3() {
+                // 访问所有三层的变量
+                return outerVar + level1Var + level2Var;  // 50 + 20 + 5 = 75
+            }
+            
+            return level3;
+        }
+        
+        return level2;
+    }
+    
+    return level1;
+}
+
+// 执行三层嵌套测试
+let test2Level1 = test2_deepNesting();
+let test2Level2 = test2Level1();
+let test2Level3 = test2Level2();
+test2Level3();  // 应该返回 75 

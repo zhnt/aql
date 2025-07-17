@@ -1,0 +1,86 @@
+// 三层嵌套闭包调试测试
+
+// 测试1：两层嵌套 (这个应该工作)
+function test_two_levels() {
+    let outerVar = 50;
+    
+    function level1() {
+        let level1Var = 20;
+        
+        function level2() {
+            return outerVar + level1Var;  // 50 + 20 = 70
+        }
+        
+        return level2;
+    }
+    
+    return level1;
+}
+
+// 测试2：三层嵌套 (这个有问题)
+function test_three_levels() {
+    let outerVar = 50;
+    
+    function level1() {
+        let level1Var = 20;
+        
+        function level2() {
+            let level2Var = 5;
+            
+            function level3() {
+                return outerVar + level1Var + level2Var;  // 50 + 20 + 5 = 75
+            }
+            
+            return level3;
+        }
+        
+        return level2;
+    }
+    
+    return level1;
+}
+
+// 测试3：三层嵌套，但只访问不同层的变量
+function test_three_levels_separated() {
+    let outerVar = 50;
+    
+    function level1() {
+        let level1Var = 20;
+        
+        function level2() {
+            let level2Var = 5;
+            
+            function level3_outer() {
+                return outerVar;  // 只访问最外层变量
+            }
+            
+            function level3_level1() {
+                return level1Var;  // 只访问level1变量
+            }
+            
+            function level3_level2() {
+                return level2Var;  // 只访问level2变量
+            }
+            
+            // 返回一个测试函数
+            function tester() {
+                let a = level3_outer();   // 50
+                let b = level3_level1();  // 20 
+                let c = level3_level2();  // 5
+                return a + b + c;         // 75
+            }
+            
+            return tester;
+        }
+        
+        return level2;
+    }
+    
+    return level1;
+}
+
+// 执行测试
+// 测试1：两层嵌套
+let test1 = test_two_levels();
+let test1_level2 = test1();
+test1_level2();  // 应该是70 

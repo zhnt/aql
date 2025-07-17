@@ -58,6 +58,7 @@ const (
 	CONST    // const
 	IF       // if
 	ELSE     // else
+	ELIF     // elif
 	RETURN   // return
 	TRUE     // true
 	FALSE    // false
@@ -184,6 +185,8 @@ func (t TokenType) String() string {
 		return "IF"
 	case ELSE:
 		return "ELSE"
+	case ELIF:
+		return "ELIF"
 	case RETURN:
 		return "RETURN"
 	case TRUE:
@@ -255,6 +258,7 @@ func IsKeyword(ident string) (TokenType, bool) {
 		"const":     CONST,
 		"if":        IF,
 		"else":      ELSE,
+		"elif":      ELIF,
 		"return":    RETURN,
 		"true":      TRUE,
 		"false":     FALSE,

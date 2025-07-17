@@ -1,0 +1,19 @@
+// 嵌套数组闭包测试
+
+function test_nested_array_closure() {
+    let sharedArray = [100, 200, 300];
+    
+    function outer() {
+        function inner(index) {
+            return sharedArray[index];
+        }
+        return inner;
+    }
+    
+    return outer;
+}
+
+// 执行测试
+let outer = test_nested_array_closure();
+let inner = outer();
+inner(1);  // 应该返回 200 (sharedArray[1]) 

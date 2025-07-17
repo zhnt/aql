@@ -1,0 +1,86 @@
+// 多参数闭包测试
+
+// 测试1：简单多参数闭包
+function test1_simple_multi_param() {
+    let base = 10;
+    
+    function createAdder(x, y) {
+        return base + x + y;
+    }
+    
+    return createAdder;
+}
+
+// 测试2：多参数闭包返回闭包
+function test2_closure_returning_closure() {
+    let multiplier = 2;
+    
+    function createMultiplier(factor) {
+        function multiply(value) {
+            return multiplier * factor * value;
+        }
+        return multiply;
+    }
+    
+    return createMultiplier;
+}
+
+// 测试3：复杂多参数闭包 - 计算器
+function test3_calculator_closure() {
+    let memory = 0;
+    
+    function calculator(op, a, b) {
+        function add() {
+            memory = a + b;
+            return memory;
+        }
+        
+        function subtract() {
+            memory = a - b;
+            return memory;
+        }
+        
+        function multiply() {
+            memory = a * b;
+            return memory;
+        }
+        
+        function getMemory() {
+            return memory;
+        }
+        
+        // 根据操作符返回不同的函数
+        // 这里简化为返回add函数
+        return add;
+    }
+    
+    return calculator;
+}
+
+// 测试4：多层嵌套多参数闭包
+function test4_nested_multi_param() {
+    let outer = 5;
+    
+    function level1(a) {
+        let level1Var = a;
+        
+        function level2(b, c) {
+            let level2Var = b + c;
+            
+            function level3(d) {
+                return outer + level1Var + level2Var + d;
+            }
+            
+            return level3;
+        }
+        
+        return level2;
+    }
+    
+    return level1;
+}
+
+// 执行测试
+// 测试1：简单多参数闭包
+let test1 = test1_simple_multi_param();
+test1(3, 7);  // 应该返回 10 + 3 + 7 = 20 

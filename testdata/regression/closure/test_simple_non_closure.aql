@@ -1,0 +1,17 @@
+// 简化的非闭包数组访问测试
+
+
+
+function test_modified_array_access() {
+    let arr = [10, 20, 30];
+    let value = 99;
+    let index = 1;
+    
+    // 先修改
+    arr[index] = value;
+    // 再访问（可能失败）
+    return arr[index];
+}
+
+// 测试1：直接访问
+test_modified_array_access();  

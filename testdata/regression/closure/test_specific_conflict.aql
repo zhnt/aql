@@ -1,0 +1,18 @@
+// 模拟原始错误场景的精确测试
+
+function test_specific_conflict() {
+    let arr = [10, 20, 30];
+    
+    function modify_and_return(index, value) {
+        // 先修改数组
+        arr[index] = value;
+        // 然后返回修改后的值 - 这里会出错
+        return arr[index];
+    }
+    
+    return modify_and_return;
+}
+
+// 测试这个特定场景
+let modify_and_return = test_specific_conflict();
+modify_and_return(1, 99);  // 这应该会失败 

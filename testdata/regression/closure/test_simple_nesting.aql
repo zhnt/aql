@@ -1,0 +1,21 @@
+// 简化的两层嵌套测试
+function testTwoLevels() {
+    let outerVar = 50;
+    
+    function level1() {
+        let level1Var = 20;
+        
+        function level2() {
+            return outerVar + level1Var;  // 50 + 20 = 70
+        }
+        
+        return level2;
+    }
+    
+    return level1;
+}
+
+// 测试两层嵌套
+let test1 = testTwoLevels();
+let test2 = test1();
+test2(); 

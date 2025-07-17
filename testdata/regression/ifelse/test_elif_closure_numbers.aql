@@ -1,0 +1,27 @@
+// 测试闭包环境下的 elif 语法（使用数字）
+
+function create_grader(passing, good, excellent) {
+    function grade(score) {
+        if (score >= excellent) {
+            return 1;  // A级
+        } elif (score >= good) {
+            return 2;  // B级
+        } elif (score >= passing) {
+            return 3;  // C级
+        } else {
+            return 4;  // F级
+        }
+    }
+    return grade;
+}
+
+// 创建评分器：及格60，良好80，优秀90
+let grader = create_grader(60, 80, 90);
+
+// 测试不同分数
+let grade1 = grader(95);  // 应该返回 1 (A级)
+let grade2 = grader(85);  // 应该返回 2 (B级)
+let grade3 = grader(70);  // 应该返回 3 (C级)
+let grade4 = grader(45);  // 应该返回 4 (F级)
+
+grade1 * 1000 + grade2 * 100 + grade3 * 10 + grade4  // 应该返回1234 

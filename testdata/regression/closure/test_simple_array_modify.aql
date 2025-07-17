@@ -1,0 +1,16 @@
+// 简单数组修改测试
+
+function test_simple_array_modify() {
+    let arr = [10, 20, 30];
+    
+    function modify(index, value) {
+        arr[index] = value;
+        return value;  // 先返回value，避免复杂的数组访问
+    }
+    
+    return modify;
+}
+
+// 执行测试
+let modify = test_simple_array_modify();
+modify(1, 99);  // 修改 arr[1] = 99，应该返回 99 

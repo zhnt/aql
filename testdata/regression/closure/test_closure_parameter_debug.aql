@@ -1,0 +1,11 @@
+function simple_closure_test() {
+    let x = 42;
+    
+    function inner(param) {
+        return param + x;
+    }
+    
+    return inner(10);
+}
+
+simple_closure_test() 

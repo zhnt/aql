@@ -183,12 +183,20 @@ func (bs *BlockStatement) String() string {
 	return out.String()
 }
 
+// ElifBranch elif分支结构
+type ElifBranch struct {
+	Token       lexer1.Token    // ELIF token
+	Condition   Expression      // elif条件表达式
+	Consequence *BlockStatement // elif块
+}
+
 // IfStatement if语句节点
 type IfStatement struct {
-	Token       lexer1.Token    // IF token
-	Condition   Expression      // 条件表达式
-	Consequence *BlockStatement // if块
-	Alternative *BlockStatement // else块
+	Token        lexer1.Token    // IF token
+	Condition    Expression      // 条件表达式
+	Consequence  *BlockStatement // if块
+	ElifBranches []*ElifBranch   // elif分支列表
+	Alternative  *BlockStatement // else块
 }
 
 func (ifs *IfStatement) statementNode()       {}
@@ -200,8 +208,17 @@ func (ifs *IfStatement) String() string {
 	out.WriteString(ifs.Condition.String())
 	out.WriteString(" ")
 	out.WriteString(ifs.Consequence.String())
+
+	// 添加elif分支
+	for _, elifBranch := range ifs.ElifBranches {
+		out.WriteString(" elif ")
+		out.WriteString(elifBranch.Condition.String())
+		out.WriteString(" ")
+		out.WriteString(elifBranch.Consequence.String())
+	}
+
 	if ifs.Alternative != nil {
-		out.WriteString("else ")
+		out.WriteString(" else ")
 		out.WriteString(ifs.Alternative.String())
 	}
 	return out.String()

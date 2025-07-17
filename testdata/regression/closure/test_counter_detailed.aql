@@ -1,0 +1,54 @@
+// 详细的Counter闭包验证测试
+
+// 创建counter闭包工厂函数
+function createCounter(initialValue) {
+    let count = initialValue;
+    
+    function increment() {
+        count = count + 1;
+        return count;
+    }
+    
+    return increment;
+}
+
+// 创建3个不同的counter实例
+let counter1 = createCounter(0);   // 从0开始
+let counter2 = createCounter(10);  // 从10开始  
+let counter3 = createCounter(100); // 从100开始
+
+// 测试每个counter的独立状态
+// counter1 第1次调用
+let c1_1 = counter1();  // 应该是 1
+
+// counter2 第1次调用
+let c2_1 = counter2();  // 应该是 11
+
+// counter3 第1次调用
+let c3_1 = counter3();  // 应该是 101
+
+// counter1 第2次调用
+let c1_2 = counter1();  // 应该是 2
+
+// counter2 第2次调用
+let c2_2 = counter2();  // 应该是 12
+
+// counter3 第2次调用
+let c3_2 = counter3();  // 应该是 102
+
+// counter1 第3次调用
+let c1_3 = counter1();  // 应该是 3
+
+// counter2 第3次调用
+let c2_3 = counter2();  // 应该是 13
+
+// counter3 第3次调用
+let c3_3 = counter3();  // 应该是 103
+
+// 验证最终结果
+// counter1: 3 (从0开始，调用3次: 0->1->2->3)
+// counter2: 13 (从10开始，调用3次: 10->11->12->13)
+// counter3: 103 (从100开始，调用3次: 100->101->102->103)
+
+// 输出最终验证 - 检查所有counter的状态
+c1_3;  // 输出counter1的最终值，应该是3 

@@ -1,0 +1,7 @@
+let arr = [1, 2, 3, 4, 5];
+let index = 2;
+
+arr[index] = 99;
+let result = arr[index];
+
+result 

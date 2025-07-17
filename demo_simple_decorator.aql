@@ -1,0 +1,30 @@
+// 简化的装饰器模式演示
+
+// 1. 基础的装饰器函数 - 包装原函数
+function logDecorator(originalFunc) {
+    function wrapper() {
+        // 调用原函数
+        let result = originalFunc();
+        return result;
+    }
+    return wrapper;
+}
+
+// 2. 多层装饰器
+function doubleDecorator(originalFunc) {
+    function doubleWrapper() {
+        let result = originalFunc();
+        return result*2;
+    }
+    return doubleWrapper;
+}
+
+// 3. 基础函数
+function greet() {
+    return 42;
+}
+
+// 4. 手动应用装饰器
+let decoratedGreet = logDecorator(greet);
+let result = decoratedGreet();
+result; 

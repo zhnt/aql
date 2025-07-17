@@ -1,0 +1,65 @@
+// 变量级别的调试测试
+
+// 测试1：分别返回每个变量
+function test_individual_variables() {
+    let outerVar = 50;
+    
+    function level1() {
+        let level1Var = 20;
+        
+        function get_outer() {
+            return outerVar;  // 应该返回50
+        }
+        
+        function get_level1() {
+            return level1Var;  // 应该返回20
+        }
+        
+        function get_both() {
+            return outerVar + level1Var;  // 应该返回70
+        }
+        
+        // 返回测试函数
+        return get_outer;
+    }
+    
+    return level1;
+}
+
+// 测试2：简单的两层嵌套，只访问外层变量
+function test_outer_only() {
+    let outerVar = 50;
+    
+    function level1() {
+        function level2() {
+            return outerVar;  // 只访问外层变量
+        }
+        
+        return level2;
+    }
+    
+    return level1;
+}
+
+// 测试3：简单的两层嵌套，只访问内层变量
+function test_inner_only() {
+    let outerVar = 50;
+    
+    function level1() {
+        let level1Var = 20;
+        
+        function level2() {
+            return level1Var;  // 只访问内层变量
+        }
+        
+        return level2;
+    }
+    
+    return level1;
+}
+
+// 执行测试
+// 测试1：获取外层变量
+let test1 = test_individual_variables();
+let test1_func = test1();
+test1_func();  // 应该返回50 

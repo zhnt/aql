@@ -1,0 +1,42 @@
+{
+  "description": "AQL闭包和寄存器分配回归测试",
+  "version": "1.0",
+  "tests": [
+    {
+      "name": "非闭包数组操作",
+      "file": "test_simple_non_closure.aql",
+      "expected_output": "结果: 99",
+      "description": "测试非闭包环境下的数组修改和访问，验证基础寄存器分配"
+    },
+    {
+      "name": "简单闭包参数传递",
+      "file": "test_closure_parameter_debug.aql",
+      "expected_output": "结果: 52",
+      "description": "测试简单闭包的参数传递和upvalue访问"
+    },
+    {
+      "name": "复杂闭包数组操作",
+      "file": "test_complex_register_conflict.aql",
+      "expected_output": "结果: 99",
+      "description": "测试闭包中的数组修改和访问，验证寄存器冲突修复"
+    },
+    {
+      "name": "三级嵌套闭包",
+      "file": "test_deep_nesting.aql",
+      "expected_output": "结果: 75",
+      "description": "测试三级嵌套闭包的变量捕获和访问"
+    },
+    {
+      "name": "多参数闭包",
+      "file": "test_multi_param_closures.aql",
+      "expected_output": "结果: 20",
+      "description": "测试多参数闭包的复杂场景"
+    },
+    {
+      "name": "数组作为upvalue",
+      "file": "test_array_closure.aql",
+      "expected_output": "结果: 3",
+      "description": "测试数组作为自由变量在闭包中的使用"
+    }
+  ]
+} 

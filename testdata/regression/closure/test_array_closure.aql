@@ -1,0 +1,74 @@
+// 自由变量为数组的闭包测试
+
+// 测试1：简单数组闭包
+function test1_simple_array_closure() {
+    let arr = [1, 2, 3, 4, 5];
+    
+    function getElement(index) {
+        return arr[index];
+    }
+    
+    return getElement;
+}
+
+// 测试2：数组修改闭包
+function test2_array_modification_closure() {
+    let arr = [10, 20, 30];
+    
+    function modifyArray(index, value) {
+        arr[index] = value;
+        return arr[index];
+    }
+    
+    return modifyArray;
+}
+
+// 测试3：数组操作闭包
+function test3_array_operations_closure() {
+    let numbers = [1, 2, 3, 4, 5];
+    
+    function sum() {
+        let total = 0;
+        let i = 0;
+        total = total + numbers[i];
+        i = i + 1;
+        total = total + numbers[i];
+        i = i + 1;
+        total = total + numbers[i];
+        i = i + 1;
+        total = total + numbers[i];
+        i = i + 1;
+        total = total + numbers[i];
+        return total;
+    }
+    
+    function getFirst() {
+        return numbers[0];
+    }
+    
+    function getLast() {
+        return numbers[4];
+    }
+    
+    // 返回sum函数进行测试
+    return sum;
+}
+
+// 测试4：嵌套闭包共享数组
+function test4_nested_array_closure() {
+    let sharedArray = [100, 200, 300];
+    
+    function outer() {
+        function inner(index) {
+            return sharedArray[index];
+        }
+        return inner;
+    }
+    
+    return outer;
+}
+
+// 执行测试
+// 测试1：简单数组闭包
+let test1 = test1_simple_array_closure();
+test1(2);  // 应该返回 3 (arr[2]) 

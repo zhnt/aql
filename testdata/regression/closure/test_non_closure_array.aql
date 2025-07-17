@@ -1,0 +1,14 @@
+// 非闭包环境的数组赋值和访问测试
+
+function test_array_assignment_and_access() {
+    let arr = [10, 20, 30];
+    let value = 99;
+    let index = 1;
+
+    // 关键操作：先赋值再访问
+    arr[index] = value;
+    return arr[index];  // 应返回 99
+}
+
+// 执行测试
+test_array_assignment_and_access(); 

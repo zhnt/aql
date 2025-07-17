@@ -1,0 +1,16 @@
+// 调试数组返回问题
+
+function test_array_return_issue() {
+    let arr = [10, 20, 30];
+    
+    function problematic_function(index) {
+        // 这行可能有问题
+        return arr[index];
+    }
+    
+    return problematic_function;
+}
+
+// 执行测试
+let func = test_array_return_issue();
+func(1);  // 应该返回 20，但可能会出错 
